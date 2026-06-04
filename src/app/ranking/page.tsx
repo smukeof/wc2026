@@ -48,7 +48,7 @@ export default async function RankingPage({ searchParams }: { searchParams: { ro
       pts = preds.reduce((s, p) => s + p.points, 0)
       typed = preds.length
     }
-    return { id: u.id, name: u.name, points: pts, typed }
+    return { id: u.id, name: u.name, avatarUrl: u.avatarUrl, points: pts, typed }
   }).sort((a, b) => b.points - a.points || b.typed - a.typed)
 
   return (
@@ -89,12 +89,20 @@ export default async function RankingPage({ searchParams }: { searchParams: { ro
                     backgroundColor: pod ? pod.bg : isMe ? 'rgba(200,16,46,0.05)' : undefined,
                     borderLeft: pod ? `3px solid ${pod.border}` : isMe ? '3px solid rgba(200,16,46,0.3)' : '3px solid transparent',
                   }}>
-                  <span className="w-8 text-center font-black text-xl">
+                  <span className="w-8 text-center font-black text-xl shrink-0">
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (
                       <span className="text-sm font-black" style={{ color: '#b89aa0' }}>{i + 1}.</span>
                     )}
                   </span>
-                  <span className="flex-1 font-bold text-zinc-900">
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#C8102E,#F4600C)' }}>
+                      {u.name[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span className="flex-1 font-bold text-zinc-900 min-w-0 truncate">
                     {u.name}
                     {isMe && (
                       <span className="ml-2 text-xs font-black px-1.5 py-0.5 rounded-full text-white"

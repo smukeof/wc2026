@@ -228,7 +228,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-zinc-400 italic text-center py-1">Brak typowania</p>
+                    <div className="border-t border-zinc-200/60 pt-3 flex items-center justify-between">
+                      <p className="text-sm text-zinc-400 italic">Brak typowania</p>
+                      {new Date(match.kickoff) > now && (
+                        <a href={`/dashboard?tab=typuj&round=${availableRounds.find(r => r.phase === match.phase)?.key ?? 'K1'}`}
+                          className="text-xs font-black px-3 py-1.5 rounded-lg text-white transition-all"
+                          style={{ background: 'linear-gradient(135deg,#C8102E,#F4600C)' }}>
+                          Typuj →
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               )
