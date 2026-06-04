@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-zinc-900 transition-colors;
+    background-color: #F5EEF0;
+  }
+
+  html.dark body {
+    background-color: #140005;
+    color: #f5e8ec;
+    /* Trwałe blaski FIFA 2026 na każdej stronie */
+    background-image:
+      radial-gradient(ellipse 80% 55% at 0% 0%,   rgba(200,16,46,0.22)  0%, transparent 55%),
+      radial-gradient(ellipse 60% 45% at 100% 8%,  rgba(244,96,12,0.16)  0%, transparent 52%),
+      radial-gradient(ellipse 70% 55% at 100% 100%,rgba(0,51,160,0.18)   0%, transparent 55%),
+      radial-gradient(ellipse 55% 45% at 0% 92%,   rgba(107,63,160,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 52% 50%,  rgba(125,187,45,0.07) 0%, transparent 55%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .card {
+    background-color: #ffffff;
+    border-color: #e8d5da;
+    color: #1a0007;
+  }
+  html.dark .card {
+    background-color: #fff8fa;
+    border-color: rgba(200, 16, 46, 0.14);
+    color: #1a0007;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(200,16,46,0.07);
+  }
+
+  .card-input {
+    @apply w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500;
+    background-color: #f5edf0;
+    border-color: #e0c8d0;
+    color: #1a0007;
+  }
+  .card-input::placeholder {
+    color: #b89aa0;
+  }
+
+  /* Tęczowy pasek FIFA */
+  .fifa-stripe {
+    height: 5px;
+    width: 100%;
+    background: linear-gradient(90deg,
+      #C8102E 0%,
+      #F4600C 18%,
+      #FFD700 36%,
+      #7DBB2D 54%,
+      #0033A0 74%,
+      #6B3FA0 100%
+    );
+  }
+
+  /* Gradient tekst dla nagłówków sekcji */
+  .fifa-gradient-text {
+    background: linear-gradient(90deg, #C8102E 0%, #F4600C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gradient przycisk */
+  .btn-fifa {
+    background: linear-gradient(135deg, #C8102E 0%, #F4600C 100%);
+    @apply text-white font-black rounded-xl transition-all active:scale-95 shadow-lg;
+  }
+  .btn-fifa:hover {
+    background: linear-gradient(135deg, #A50D25 0%, #d44e08 100%);
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

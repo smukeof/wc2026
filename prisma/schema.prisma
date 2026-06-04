@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique
+  name         String
+  email        String?       @unique
+  password     String?
+  avatarUrl    String?
+  status       String        @default("active")
+  isAdmin      Boolean       @default(false)
+  predictions  Prediction[]
+  specialBets  SpecialBet[]
+  messages     Message[]
+  createdAt    DateTime      @default(now())
+}
+
+model Match {
+  id          Int          @id @default(autoincrement())
+  phase       String       @default("Kolejka 1")
+  group       String?
+  teamHome    String
+  teamAway    String
+  kickoff     DateTime
+  status      String       @default("open")
+  scoreHome   Int?
+  scoreAway   Int?
+  scorers     String?
+  predictions Prediction[]
+  createdAt   DateTime     @default(now())
+}
+
+model Prediction {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  matchId    Int
+  winner     String
+  scorer     String?
+  scoreHome  Int?
+  scoreAway  Int?
+  points     Int      @default(0)
+  user       User     @relation(fields: [userId], references: [id])
+  match      Match    @relation(fields: [matchId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, matchId])
+}
+
+model Player {
+  id   Int    @id @default(autoincrement())
+  name String
+  team String
+
+  @@unique([name, team])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model SpecialBet {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  type   String
+  value  String
+  points Int    @default(0)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+}
+
+model SpecialResult {
+  type  String @id
+  value String
+}

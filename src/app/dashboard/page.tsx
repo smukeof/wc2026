@@ -1,0 +1,241 @@
+import { redirect } from 'next/navigation'
+import { getSessionUser } from '@/lib/session'
+import { prisma } from '@/lib/db'
+import NavBar from '@/components/NavBar'
+import MatchCard from '@/components/MatchCard'
+
+const ROUNDS = [
+  { key: 'K1',  label: 'Kolejka 1',        phase: 'Kolejka 1' },
+  { key: 'K2',  label: 'Kolejka 2',        phase: 'Kolejka 2' },
+  { key: 'K3',  label: 'Kolejka 3',        phase: 'Kolejka 3' },
+  { key: 'R16', label: '1/16 finału',      phase: '1/16 finału' },
+  { key: 'R8',  label: '1/8 finału',       phase: '1/8 finału' },
+  { key: 'QF',  label: 'Ćwierćfinały',     phase: 'Ćwierćfinały' },
+  { key: 'SF',  label: 'Półfinały',        phase: 'Półfinały' },
+  { key: 'B3',  label: 'Mecz o 3.',        phase: 'Mecz o 3. miejsce' },
+  { key: 'F',   label: 'Finał',            phase: 'Finał' },
+]
+
+const FLAGS: Record<string, string> = {
+  polska: '🇵🇱', niemcy: '🇩🇪', francja: '🇫🇷', brazylia: '🇧🇷', argentyna: '🇦🇷',
+  anglia: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', hiszpania: '🇪🇸', portugalia: '🇵🇹', meksyk: '🇲🇽', usa: '🇺🇸',
+  kanada: '🇨🇦', holandia: '🇳🇱', belgia: '🇧🇪', chorwacja: '🇭🇷', maroko: '🇲🇦',
+  senegal: '🇸🇳', japonia: '🇯🇵', korea: '🇰🇷', ghana: '🇬🇭', ekwador: '🇪🇨',
+  urugwaj: '🇺🇾', kolumbia: '🇨🇴', paragwaj: '🇵🇾', tunezja: '🇹🇳', egipt: '🇪🇬',
+  dania: '🇩🇰', szwajcaria: '🇨🇭', austria: '🇦🇹', turcja: '🇹🇷', szwecja: '🇸🇪',
+  czechy: '🇨🇿', arabia: '🇸🇦', iran: '🇮🇷', australia: '🇦🇺', katar: '🇶🇦',
+  panama: '🇵🇦', nowa: '🇳🇿', szkocja: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', haiti: '🇭🇹', irak: '🇮🇶',
+  norwegia: '🇳🇴', algieria: '🇩🇿', jordania: '🇯🇴', uzbekistan: '🇺🇿',
+  dr: '🇨🇩', rpa: '🇿🇦', bośnia: '🇧🇦', curaçao: '🇨🇼', wyspy: '🇨🇻', wybrzeże: '🇨🇮',
+}
+
+function flag(team: string) {
+  if (team === 'TBD') return '❓'
+  return FLAGS[team.toLowerCase().split(' ')[0]] ?? '🏳️'
+}
+
+function formatDate(d: Date) {
+  return new Intl.DateTimeFormat('pl-PL', {
+    weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  }).format(new Date(d))
+}
+
+// Kolory FIFA dla grup A–L
+const GROUP_COLORS: Record<string, string> = {
+  A: '#C8102E', B: '#F4600C', C: '#FFD700', D: '#7DBB2D',
+  E: '#0033A0', F: '#6B3FA0', G: '#C8102E', H: '#F4600C',
+  I: '#7DBB2D', J: '#0033A0', K: '#6B3FA0', L: '#C8102E',
+}
+
+const pillCls = (active: boolean) =>
+  `flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${
+    active
+      ? 'text-white border-transparent shadow-sm'
+      : 'card text-zinc-600 border-zinc-200 hover:border-brand-300'
+  }`
+
+export default async function DashboardPage({ searchParams }: { searchParams: { tab?: string; round?: string } }) {
+  const user = await getSessionUser()
+  if (!user) redirect('/')
+
+  const now = new Date()
+  const mainTab = searchParams.tab === 'moje' ? 'moje' : 'typuj'
+
+  const [allPhases, userPredictions, players] = await Promise.all([
+    prisma.match.groupBy({ by: ['phase'] }),
+    prisma.prediction.findMany({ where: { userId: user.id }, include: { match: true } }),
+    prisma.player.findMany({ orderBy: [{ team: 'asc' }, { name: 'asc' }] }),
+  ])
+
+  const existingPhases = new Set(allPhases.map((p) => p.phase))
+  const availableRounds = ROUNDS.filter((r) => existingPhases.has(r.phase))
+
+  let activeRound = availableRounds[0]
+  if (searchParams.round) {
+    const found = availableRounds.find((r) => r.key === searchParams.round)
+    if (found) activeRound = found
+  } else if (mainTab === 'typuj') {
+    const upcomingPhases = await prisma.match.groupBy({ by: ['phase'], where: { kickoff: { gt: now } } })
+    const upcomingSet = new Set(upcomingPhases.map((p) => p.phase))
+    const nearest = availableRounds.find((r) => upcomingSet.has(r.phase))
+    if (nearest) activeRound = nearest
+  }
+
+  const roundMatches = activeRound
+    ? await prisma.match.findMany({ where: { phase: activeRound.phase }, orderBy: { kickoff: 'asc' } })
+    : []
+
+  const predMap = new Map(userPredictions.map((p) => [p.matchId, p]))
+  const totalPoints = userPredictions.reduce((sum, p) => sum + p.points, 0)
+
+  const roundPills = (tab: string) => (
+    <div className="flex gap-2 overflow-x-auto pb-2 mb-5 -mx-4 px-4 scrollbar-none">
+      {availableRounds.map((r) => (
+        <a key={r.key} href={`/dashboard?tab=${tab}&round=${r.key}`}
+          className={pillCls(r.key === activeRound?.key)}
+          style={r.key === activeRound?.key ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+          {r.label}
+        </a>
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen">
+      <NavBar userName={user.name} isAdmin={user.isAdmin} activeTab="dashboard" avatarUrl={user.avatarUrl ?? undefined} />
+      <div className="max-w-3xl mx-auto px-4 py-6">
+
+        {/* Header z punktami */}
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-black text-white">Cześć, {user.name}! 👋</h1>
+            <p className="text-sm text-white/50 mt-0.5">
+              Twoje punkty:{' '}
+              <span className="font-black text-base" style={{
+                background: 'linear-gradient(90deg, #FFD700, #F4600C)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>{totalPoints} pkt</span>
+            </p>
+          </div>
+          <div className="text-3xl opacity-60">⚽</div>
+        </div>
+
+        {/* Main tabs */}
+        <div className="flex gap-2 mb-5">
+          {(['typuj', 'moje'] as const).map((t) => (
+            <a key={t} href={`/dashboard?tab=${t}&round=${activeRound?.key ?? 'K1'}`}
+              className={`px-5 py-2 rounded-xl text-sm font-black transition-all ${
+                mainTab === t
+                  ? 'text-white shadow-md'
+                  : 'card text-zinc-600 border border-zinc-200'
+              }`}
+              style={mainTab === t ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+              {t === 'typuj' ? 'Typy' : 'Moje typy'}
+            </a>
+          ))}
+        </div>
+
+        {roundPills(mainTab)}
+
+        {/* ── TYPY ── */}
+        {mainTab === 'typuj' && (
+          <div className="space-y-3">
+            {roundMatches.length === 0 && (
+              <div className="text-center py-16 text-white/40"><div className="text-4xl mb-2">📋</div><p>Brak meczów</p></div>
+            )}
+            <datalist id="players-list">{players.map((p) => <option key={`${p.team}-${p.name}`} value={p.name} />)}</datalist>
+
+            {activeRound?.phase.startsWith('Kolejka')
+              ? ['A','B','C','D','E','F','G','H','I','J','K','L']
+                  .filter((g) => roundMatches.some((m) => m.group === g))
+                  .map((group) => (
+                    <div key={group}>
+                      <div className="flex items-center gap-2 mb-2 mt-5">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: GROUP_COLORS[group] ?? '#C8102E' }} />
+                        <h3 className="text-xs font-black uppercase tracking-widest"
+                          style={{ color: GROUP_COLORS[group] ?? '#C8102E' }}>
+                          Grupa {group}
+                        </h3>
+                        <div className="flex-1 h-px" style={{ backgroundColor: `${GROUP_COLORS[group] ?? '#C8102E'}30` }} />
+                      </div>
+                      <div className="space-y-3">
+                        {roundMatches.filter((m) => m.group === group).map((match) => (
+                          <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
+                            matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                            isOpen={new Date(match.kickoff) > now} />
+                        ))}
+                      </div>
+                    </div>
+                  ))
+              : roundMatches.map((match) => (
+                  <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
+                    matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                    isOpen={new Date(match.kickoff) > now} />
+                ))
+            }
+          </div>
+        )}
+
+        {/* ── MOJE TYPY ── */}
+        {mainTab === 'moje' && (
+          <div className="space-y-3">
+            {roundMatches.length === 0 && (
+              <div className="text-center py-16 text-white/40"><div className="text-4xl mb-2">📋</div><p>Brak meczów</p></div>
+            )}
+            {roundMatches.map((match) => {
+              const pred = predMap.get(match.id) ?? null
+              const finished = match.status === 'finished'
+              return (
+                <div key={match.id} className="card rounded-2xl p-4 shadow-lg border border-zinc-200/60">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-zinc-500">
+                      {match.phase}{match.group ? ` · Gr.${match.group}` : ''} · {formatDate(match.kickoff)}
+                    </span>
+                    {finished && (
+                      <span className="text-xs font-black px-2.5 py-0.5 rounded-full text-white"
+                        style={{ background: 'linear-gradient(135deg,#1a0007,#3a0010)' }}>
+                        {match.scoreHome} – {match.scoreAway}
+                      </span>
+                    )}
+                    {!finished && new Date(match.kickoff) > now && (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ background: 'linear-gradient(135deg,#C8102E,#F4600C)' }}>otwarte</span>
+                    )}
+                    {!finished && new Date(match.kickoff) <= now && (
+                      <span className="text-xs text-zinc-400 font-semibold">w trakcie</span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-base font-bold text-zinc-900 mb-3">
+                    <span>{flag(match.teamHome)} {match.teamHome}</span>
+                    <span className="text-zinc-400 text-xs font-normal">vs</span>
+                    <span>{match.teamAway} {flag(match.teamAway)}</span>
+                  </div>
+                  {pred ? (
+                    <div className="border-t border-zinc-200/60 pt-3 space-y-1.5 text-sm">
+                      <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Zwycięzca:</span><span className="font-bold">{pred.winner === 'home' ? match.teamHome : pred.winner === 'away' ? match.teamAway : 'Remis'}</span></div>
+                      {pred.scoreHome !== null && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Wynik:</span><span className="font-mono font-bold">{pred.scoreHome}–{pred.scoreAway}</span></div>}
+                      {pred.scorer && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">1. bramka:</span><span className="font-bold">{pred.scorer}</span></div>}
+                      {finished && (
+                        <div className="flex justify-between pt-1 border-t border-zinc-200/60">
+                          <span className="text-zinc-500">Punkty:</span>
+                          <span className={`font-black text-base ${pred.points > 0 ? '' : 'text-zinc-400'}`}
+                            style={pred.points > 0 ? { color: '#C8102E' } : undefined}>
+                            {pred.points} pkt
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-400 italic text-center py-1">Brak typowania</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# env (SECRETS - nie commitować!)
+.env
+.env.local
+.env*.local
+
+# database (lokalna, na Railway jest osobna)
+prisma/dev.db
+prisma/dev.db-journal
+
+# misc
+.DS_Store
+*.pem
+tsconfig.tsbuildinfo
