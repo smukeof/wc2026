@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/db'
 import NavBar from '@/components/NavBar'
 import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction, sendPatchNotesAction } from '@/app/actions'
+import AdminScorerInput from '@/components/AdminScorerInput'
 
 const PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3','1/16 finału','1/8 finału','Ćwierćfinały','Półfinały','Mecz o 3. miejsce','Finał']
 const TEAMS = ['Meksyk','RPA','Korea Południowa','Czechy','Kanada','Bośnia i Hercegowina','Katar','Szwajcaria','Brazylia','Maroko','Haiti','Szkocja','USA','Paragwaj','Australia','Turcja','Niemcy','Curaçao','Wybrzeże Kości Słoniowej','Ekwador','Holandia','Japonia','Szwecja','Tunezja','Belgia','Egipt','Iran','Nowa Zelandia','Hiszpania','Wyspy Zielonego Przylądka','Arabia Saudyjska','Urugwaj','Francja','Senegal','Irak','Norwegia','Argentyna','Algieria','Austria','Jordania','Portugalia','DR Kongo','Uzbekistan','Kolumbia','Anglia','Chorwacja','Ghana','Panama']
@@ -157,12 +158,9 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                           defaultValue={m.scoreAway ?? ''}
                           className={`${inp} w-24`} style={inpStyle} />
                       </div>
-                      <input type="text" name="scorers" list="all-players-admin"
-                        defaultValue={(m as { scorers?: string | null }).scorers ?? ''}
-                        placeholder='Strzelec 1. bramki, "Brak gola" lub "Gol samobójczy"'
-                        className={inp} style={inpStyle} />
+                      <AdminScorerInput defaultValue={(m as { scorers?: string | null }).scorers ?? ''} />
                       <button type="submit" className={btnCls}>
-                        Zapisz wynik i przelicz punkty ({m._count.predictions})
+                        Zapisz wynik i przelicz punkty
                       </button>
                     </form>
 
@@ -223,10 +221,10 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
               ))}
             </div>
             <div className="card rounded-2xl p-5 border border-zinc-200/60 shadow-lg">
-              <h2 className="font-bold text-zinc-900 mb-2">Patch notes na chat</h2>
-              <p className="text-xs text-zinc-500 mb-3">Usuwa Twoje poprzednie wiadomości i wysyła na chat informację o zmianach.</p>
+              <h2 className="font-bold text-zinc-900 mb-2">Wyczyść moje wiadomości</h2>
+              <p className="text-xs text-zinc-500 mb-3">Usuwa wszystkie Twoje wiadomości z chatu.</p>
               <form action={sendPatchNotesAction}>
-                <button type="submit" className={btnCls}>📢 Wyślij patch notes</button>
+                <button type="submit" className={dangerBtnCls}>🗑️ Usuń moje wiadomości</button>
               </form>
             </div>
           </div>

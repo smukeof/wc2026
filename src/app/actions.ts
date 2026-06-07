@@ -238,12 +238,6 @@ export async function sendPatchNotesAction() {
   await requireAdmin()
   const userId = getSessionUserId()!
   await prisma.message.deleteMany({ where: { userId } })
-  await prisma.message.create({
-    data: {
-      userId,
-      content: '🔧 Aktualizacja strony | Co nowego: (1) Zakładka Typy — usunięto osobną zakładkę "Moje typy", po zakończeniu meczu punkty widać od razu na karcie. (2) Rundki zawijają się w 2 rzędy — koniec ze scrollowaniem. (3) Nowy filtr "Do obstawienia" — kliknij żeby zobaczyć tylko mecze bez typowania. (4) Chat — przy wiadomościach widać teraz avatary.',
-    },
-  })
   revalidatePath('/chat')
   redirect('/chat')
 }

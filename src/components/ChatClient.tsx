@@ -13,7 +13,7 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollBottom = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
 
@@ -76,7 +76,7 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
                     : 'card border border-zinc-200/60 text-zinc-900 rounded-bl-sm'
                 }`}
                 style={isMe ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
-                  {m.content}
+                  <span className="whitespace-pre-wrap">{m.content}</span>
                 </div>
                 <span className="text-xs text-white/25 px-1">{fmt(m.createdAt)}</span>
               </div>
@@ -86,17 +86,17 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
         <div ref={bottomRef} />
       </div>
 
-      <div className="pt-3 border-t border-white/10 flex gap-2">
-        <input
+      <div className="pt-3 border-t border-white/10 flex gap-2 items-end">
+        <textarea
           ref={inputRef}
-          type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
-          placeholder="Napisz wiadomość…"
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+          placeholder="Napisz wiadomość… (Shift+Enter = nowa linia)"
           maxLength={500}
-          style={{ backgroundColor: '#fff8fa', borderColor: 'rgba(200,16,46,0.15)', color: '#1a0007' }}
-          className="flex-1 px-4 py-2.5 rounded-xl border placeholder-[#b89aa0] focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm"
+          rows={1}
+          style={{ backgroundColor: '#fff8fa', borderColor: 'rgba(200,16,46,0.15)', color: '#1a0007', resize: 'none', minHeight: '42px', maxHeight: '120px' }}
+          className="flex-1 px-4 py-2.5 rounded-xl border placeholder-[#b89aa0] focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm overflow-y-auto"
         />
         <button onClick={send} disabled={!draft.trim() || sending}
           className="px-4 py-2.5 disabled:opacity-40 text-white font-black rounded-xl transition-all text-sm shadow-md active:scale-95"
