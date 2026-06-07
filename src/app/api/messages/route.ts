@@ -14,6 +14,20 @@ export async function GET() {
   return NextResponse.json(messages)
 }
 
+export async function DELETE(req: Request) {
+  const userId = getSessionUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id } = await req.json().catch(() => ({}))
+  if (!id) return NextResponse.json({ error: 'Invalid' }, { status: 400 })
+
+  await prisma.message.delete({ where: { id } })
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(req: Request) {
   const userId = getSessionUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

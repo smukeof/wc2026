@@ -8,7 +8,7 @@ function fmt(iso: string) {
   return new Intl.DateTimeFormat('pl-PL', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 }
 
-export default function ChatClient({ initialMessages, currentUserId }: { initialMessages: Msg[]; currentUserId: number }) {
+export default function ChatClient({ initialMessages, currentUserId, isAdmin }: { initialMessages: Msg[]; currentUserId: number; isAdmin: boolean }) {
   const [messages, setMessages] = useState<Msg[]>(initialMessages)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
@@ -27,6 +27,11 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
     }, 3000)
     return () => clearInterval(id)
   }, [])
+
+  async function deleteMsg(id: number) {
+    await fetch('/api/messages', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setMessages((prev) => prev.filter((m) => m.id !== id))
+  }
 
   async function send() {
     const content = draft.trim()
@@ -59,7 +64,7 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
         {messages.map((m) => {
           const isMe = m.user.id === currentUserId
           return (
-            <div key={m.id} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+            <div key={m.id} className={`group flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
               {!isMe && (
                 <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-xs font-black text-white"
                   style={{ background: 'linear-gradient(135deg, #C8102E, #F4600C)' }}>
@@ -80,6 +85,13 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
                 </div>
                 <span className="text-xs text-white/25 px-1">{fmt(m.createdAt)}</span>
               </div>
+              {isAdmin && (
+                <button onClick={() => deleteMsg(m.id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 w-5 h-5 rounded-full bg-red-100 hover:bg-red-200 text-red-500 text-xs flex items-center justify-center mb-1"
+                  title="Usuń wiadomość">
+                  ×
+                </button>
+              )}
             </div>
           )
         })}

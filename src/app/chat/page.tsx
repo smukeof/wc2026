@@ -19,7 +19,7 @@ export default async function ChatPage() {
     <div className="min-h-screen flex flex-col">
       <NavBar userName={user.name} isAdmin={user.isAdmin} activeTab="chat" avatarUrl={user.avatarUrl ?? undefined} />
       <div className="flex-1 max-w-3xl w-full mx-auto px-4 py-4 flex flex-col" style={{ height: 'calc(100vh - 56px)' }}>
-        <ChatClient initialMessages={messages} currentUserId={user.id} />
+        <ChatClient initialMessages={messages} currentUserId={user.id} isAdmin={user.isAdmin} />
       </div>
     </div>
   )
