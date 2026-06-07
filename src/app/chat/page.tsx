@@ -11,7 +11,7 @@ export default async function ChatPage() {
   const rawMessages = await prisma.message.findMany({
     orderBy: { createdAt: 'asc' },
     take: 200,
-    include: { user: { select: { id: true, name: true } } },
+    include: { user: { select: { id: true, name: true, avatarUrl: true } } },
   })
   const messages = rawMessages.map((m) => ({ ...m, createdAt: m.createdAt.toISOString() }))
 

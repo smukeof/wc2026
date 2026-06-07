@@ -54,12 +54,11 @@ const pillCls = (active: boolean) =>
       : 'card text-zinc-600 border-zinc-200 hover:border-brand-300'
   }`
 
-export default async function DashboardPage({ searchParams }: { searchParams: { tab?: string; round?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams: { round?: string } }) {
   const user = await getSessionUser()
   if (!user) redirect('/')
 
   const now = new Date()
-  const mainTab = searchParams.tab === 'moje' ? 'moje' : 'typuj'
 
   const [allPhases, userPredictions, players] = await Promise.all([
     prisma.match.groupBy({ by: ['phase'] }),
@@ -74,7 +73,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   if (searchParams.round) {
     const found = availableRounds.find((r) => r.key === searchParams.round)
     if (found) activeRound = found
-  } else if (mainTab === 'typuj') {
+  } else {
     const upcomingPhases = await prisma.match.groupBy({ by: ['phase'], where: { kickoff: { gt: now } } })
     const upcomingSet = new Set(upcomingPhases.map((p) => p.phase))
     const nearest = availableRounds.find((r) => upcomingSet.has(r.phase))
@@ -88,10 +87,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   const predMap = new Map(userPredictions.map((p) => [p.matchId, p]))
   const totalPoints = userPredictions.reduce((sum, p) => sum + p.points, 0)
 
-  const roundPills = (tab: string) => (
-    <div className="flex gap-2 overflow-x-auto pb-2 mb-5 -mx-4 px-4 scrollbar-none">
+  const roundPills = () => (
+    <div className="flex flex-wrap gap-2 mb-5">
       {availableRounds.map((r) => (
-        <a key={r.key} href={`/dashboard?tab=${tab}&round=${r.key}`}
+        <a key={r.key} href={`/dashboard?round=${r.key}`}
           className={pillCls(r.key === activeRound?.key)}
           style={r.key === activeRound?.key ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
           {r.label}
@@ -121,26 +120,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           <div className="text-3xl opacity-60">⚽</div>
         </div>
 
-        {/* Main tabs */}
-        <div className="flex gap-2 mb-5">
-          {(['typuj', 'moje'] as const).map((t) => (
-            <a key={t} href={`/dashboard?tab=${t}&round=${activeRound?.key ?? 'K1'}`}
-              className={`px-5 py-2 rounded-xl text-sm font-black transition-all ${
-                mainTab === t
-                  ? 'text-white shadow-md'
-                  : 'card text-zinc-600 border border-zinc-200'
-              }`}
-              style={mainTab === t ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
-              {t === 'typuj' ? 'Typy' : 'Moje typy'}
-            </a>
-          ))}
-        </div>
-
-        {roundPills(mainTab)}
+        {roundPills()}
 
         {/* ── TYPY ── */}
-        {mainTab === 'typuj' && (
-          <div className="space-y-3">
+        <div className="space-y-3">
             {roundMatches.length === 0 && (
               <div className="text-center py-16 text-white/40"><div className="text-4xl mb-2">📋</div><p>Brak meczów</p></div>
             )}
@@ -176,74 +159,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
                 ))
             }
           </div>
-        )}
-
-        {/* ── MOJE TYPY ── */}
-        {mainTab === 'moje' && (
-          <div className="space-y-3">
-            {roundMatches.length === 0 && (
-              <div className="text-center py-16 text-white/40"><div className="text-4xl mb-2">📋</div><p>Brak meczów</p></div>
-            )}
-            {roundMatches.map((match) => {
-              const pred = predMap.get(match.id) ?? null
-              const finished = match.status === 'finished'
-              return (
-                <div key={match.id} className="card rounded-2xl p-4 shadow-lg border border-zinc-200/60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-zinc-500">
-                      {match.phase}{match.group ? ` · Gr.${match.group}` : ''} · {formatDate(match.kickoff)}
-                    </span>
-                    {finished && (
-                      <span className="text-xs font-black px-2.5 py-0.5 rounded-full text-white"
-                        style={{ background: 'linear-gradient(135deg,#1a0007,#3a0010)' }}>
-                        {match.scoreHome} – {match.scoreAway}
-                      </span>
-                    )}
-                    {!finished && new Date(match.kickoff) > now && (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
-                        style={{ background: 'linear-gradient(135deg,#C8102E,#F4600C)' }}>otwarte</span>
-                    )}
-                    {!finished && new Date(match.kickoff) <= now && (
-                      <span className="text-xs text-zinc-400 font-semibold">w trakcie</span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-base font-bold text-zinc-900 mb-3">
-                    <span>{flag(match.teamHome)} {match.teamHome}</span>
-                    <span className="text-zinc-400 text-xs font-normal">vs</span>
-                    <span>{match.teamAway} {flag(match.teamAway)}</span>
-                  </div>
-                  {pred ? (
-                    <div className="border-t border-zinc-200/60 pt-3 space-y-1.5 text-sm">
-                      <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Zwycięzca:</span><span className="font-bold">{pred.winner === 'home' ? match.teamHome : pred.winner === 'away' ? match.teamAway : 'Remis'}</span></div>
-                      {pred.scoreHome !== null && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Wynik:</span><span className="font-mono font-bold">{pred.scoreHome}–{pred.scoreAway}</span></div>}
-                      {pred.scorer && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">1. bramka:</span><span className="font-bold">{pred.scorer}</span></div>}
-                      {finished && (
-                        <div className="flex justify-between pt-1 border-t border-zinc-200/60">
-                          <span className="text-zinc-500">Punkty:</span>
-                          <span className={`font-black text-base ${pred.points > 0 ? '' : 'text-zinc-400'}`}
-                            style={pred.points > 0 ? { color: '#C8102E' } : undefined}>
-                            {pred.points} pkt
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="border-t border-zinc-200/60 pt-3 flex items-center justify-between">
-                      <p className="text-sm text-zinc-400 italic">Brak typowania</p>
-                      {new Date(match.kickoff) > now && (
-                        <a href={`/dashboard?tab=typuj&round=${availableRounds.find(r => r.phase === match.phase)?.key ?? 'K1'}`}
-                          className="text-xs font-black px-3 py-1.5 rounded-lg text-white transition-all"
-                          style={{ background: 'linear-gradient(135deg,#C8102E,#F4600C)' }}>
-                          Typuj →
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
     </div>
   )

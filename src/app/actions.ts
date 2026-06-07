@@ -105,7 +105,19 @@ export async function addMatchAction(formData: FormData) {
   const group = (formData.get('group') as string)?.trim() || null
   const kickoff = new Date(formData.get('kickoff') as string)
   await prisma.match.create({ data: { teamHome, teamAway, phase, group, kickoff } })
-  redirect('/admin')
+  redirect('/admin?tab=mecze')
+}
+
+export async function updateMatchAction(formData: FormData) {
+  await requireAdmin()
+  const matchId = parseInt(formData.get('matchId') as string)
+  const teamHome = (formData.get('teamHome') as string).trim()
+  const teamAway = (formData.get('teamAway') as string).trim()
+  const phase = (formData.get('phase') as string).trim()
+  const group = (formData.get('group') as string)?.trim() || null
+  const kickoff = new Date(formData.get('kickoff') as string)
+  await prisma.match.update({ where: { id: matchId }, data: { teamHome, teamAway, phase, group, kickoff } })
+  redirect('/admin?tab=mecze')
 }
 
 export async function deleteMatchAction(formData: FormData) {
@@ -153,7 +165,7 @@ export async function enterResultsAction(formData: FormData) {
     await prisma.prediction.update({ where: { id: pred.id }, data: { points: pts } })
   }
 
-  redirect('/admin?tab=wyniki')
+  redirect('/admin?tab=mecze')
 }
 
 // ─── ADMIN: USERS ──────────────────────────────────────────────────────────
@@ -275,7 +287,7 @@ export async function saveSpecialResultAction(formData: FormData) {
   const pts = SPECIAL_POINTS[type] ?? 0
   await prisma.specialBet.updateMany({ where: { type }, data: { points: 0 } })
   await prisma.specialBet.updateMany({
-    where: { type, value: { equals: value, mode: 'insensitive' } as never },
+    where: { type, value },
     data: { points: pts },
   })
 

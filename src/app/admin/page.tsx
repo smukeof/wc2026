@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/db'
 import NavBar from '@/components/NavBar'
-import { addMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction } from '@/app/actions'
+import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction } from '@/app/actions'
 
 const PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3','1/16 finału','1/8 finału','Ćwierćfinały','Półfinały','Mecz o 3. miejsce','Finał']
 const TEAMS = ['Meksyk','RPA','Korea Południowa','Czechy','Kanada','Bośnia i Hercegowina','Katar','Szwajcaria','Brazylia','Maroko','Haiti','Szkocja','USA','Paragwaj','Australia','Turcja','Niemcy','Curaçao','Wybrzeże Kości Słoniowej','Ekwador','Holandia','Japonia','Szwecja','Tunezja','Belgia','Egipt','Iran','Nowa Zelandia','Hiszpania','Wyspy Zielonego Przylądka','Arabia Saudyjska','Urugwaj','Francja','Senegal','Irak','Norwegia','Argentyna','Algieria','Austria','Jordania','Portugalia','DR Kongo','Uzbekistan','Kolumbia','Anglia','Chorwacja','Ghana','Panama']
@@ -23,16 +23,24 @@ function fmt(d: Date) {
   return new Date(d).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+function toDatetimeLocal(d: Date) {
+  const dt = new Date(d)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`
+}
+
 const inp = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 const inpStyle = { backgroundColor: '#f5edf0', borderColor: '#e0c8d0', color: '#1a0007' }
 const btnCls = 'px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold rounded-lg transition-colors shadow-sm'
 const dangerBtnCls = 'px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold rounded-lg transition-colors'
 
-export default async function AdminPage({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function AdminPage({ searchParams }: { searchParams: { tab?: string; editId?: string; predId?: string } }) {
   const user = await getSessionUser()
   if (!user || !user.isAdmin) redirect('/')
 
   const tab = searchParams.tab ?? 'mecze'
+  const editId = searchParams.editId ? parseInt(searchParams.editId) : null
+  const predId = searchParams.predId ? parseInt(searchParams.predId) : null
   const now = new Date()
 
   const [matches, users, players, specialResults, pendingUsers] = await Promise.all([
@@ -47,10 +55,17 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
   const pendingCount = pastMatches.filter((m) => m.status !== 'finished').length
   const resultMap = new Map(specialResults.map((r) => [r.type, r.value]))
 
+  const matchPredictions = predId
+    ? await prisma.prediction.findMany({
+        where: { matchId: predId },
+        include: { user: { select: { name: true } } },
+        orderBy: { points: 'desc' },
+      })
+    : []
+
   const TABS = [
-    { key: 'mecze',    label: 'Mecze' },
+    { key: 'mecze',    label: `Mecze${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
     { key: 'kody',     label: 'Kody' },
-    { key: 'wyniki',   label: `Wyniki${pendingCount > 0 ? ` (${pendingCount})` : ''}` },
     { key: 'specjalne',label: 'Specjalne' },
     { key: 'konta',    label: `Konta${pendingUsers.length > 0 ? ` (${pendingUsers.length})` : ''}` },
   ]
@@ -74,38 +89,114 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
 
         {/* ── MECZE ── */}
         {tab === 'mecze' && (
-          <div className="space-y-5">
-            <div className="card rounded-2xl p-5 border border-zinc-200/60 shadow-lg">
-              <h2 className="font-bold text-zinc-900 mb-4">Dodaj mecz</h2>
-              <form action={addMatchAction} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <input name="teamHome" required placeholder="Gospodarz" className={inp} style={inpStyle} />
-                  <input name="teamAway" required placeholder="Gość" className={inp} style={inpStyle} />
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <select name="phase" required className={inp} style={inpStyle}>
-                    {PHASES.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                  <input name="group" placeholder="Grupa (np. A)" className={inp} style={inpStyle} />
-                  <input name="kickoff" type="datetime-local" required className={inp} style={inpStyle} />
-                </div>
-                <button type="submit" className={btnCls}>+ Dodaj mecz</button>
-              </form>
-            </div>
-            <div className="card rounded-2xl border border-zinc-200/60 overflow-hidden shadow-lg">
-              {matches.length === 0 ? <p className="text-center py-8 text-zinc-400">Brak meczów</p> : matches.map((m, i) => (
-                <div key={m.id} className={`flex items-center gap-3 px-4 py-3 ${i < matches.length - 1 ? 'border-b border-zinc-200/60' : ''}`}>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-zinc-900 truncate">{m.teamHome} vs {m.teamAway}</p>
-                    <p className="text-xs text-zinc-500">{m.phase}{m.group ? ` · Gr.${m.group}` : ''} · {fmt(m.kickoff)} · {m._count.predictions} typów</p>
+          <div className="space-y-4">
+            <datalist id="all-players-admin">{players.map((p) => <option key={`${p.team}-${p.name}`} value={p.name} />)}</datalist>
+            {matches.length === 0 && <p className="text-center py-8 text-white/30">Brak meczów</p>}
+            {matches.map((m) => {
+              const isPast = new Date(m.kickoff) <= now
+              const isEdit = editId === m.id
+              const isPred = predId === m.id
+              const predMatch = matchPredictions.filter(p => p.matchId === m.id)
+              return (
+                <div key={m.id} className={`card rounded-2xl border shadow-lg overflow-hidden ${m.status === 'finished' ? 'border-green-200' : 'border-zinc-200/60'}`}>
+                  {/* Nagłówek meczu */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-zinc-900">{m.teamHome} vs {m.teamAway}</p>
+                      <p className="text-xs text-zinc-500">{m.phase}{m.group ? ` · Gr.${m.group}` : ''} · {fmt(m.kickoff)} · {m._count.predictions} typów</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${m.status === 'finished' ? 'bg-green-100 text-green-700' : 'bg-brand-100 text-brand-700'}`}>
+                        {m.status === 'finished' ? `${m.scoreHome}–${m.scoreAway}` : 'otwarty'}
+                      </span>
+                      <a href={`/admin?tab=mecze${isEdit ? '' : `&editId=${m.id}`}`}
+                        className="px-2.5 py-1 text-xs font-bold rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors">
+                        {isEdit ? 'Zamknij' : 'Edytuj'}
+                      </a>
+                      <form action={deleteMatchAction}>
+                        <input type="hidden" name="matchId" value={m.id} />
+                        <button type="submit" className={dangerBtnCls}>Usuń</button>
+                      </form>
+                    </div>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${m.status === 'finished' ? 'bg-green-100 text-green-700' : 'bg-brand-100 text-brand-700'}`}>
-                    {m.status === 'finished' ? `${m.scoreHome}–${m.scoreAway}` : 'otwarty'}
-                  </span>
-                  <form action={deleteMatchAction}><input type="hidden" name="matchId" value={m.id} /><button type="submit" className={dangerBtnCls}>Usuń</button></form>
+
+                  {/* Formularz edycji */}
+                  {isEdit && (
+                    <form action={updateMatchAction} className="border-t border-zinc-200/60 px-4 py-4 space-y-3 bg-zinc-50/50">
+                      <p className="text-xs font-black text-zinc-500 uppercase tracking-wide">Edytuj mecz</p>
+                      <input type="hidden" name="matchId" value={m.id} />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input name="teamHome" required defaultValue={m.teamHome} placeholder="Gospodarz" className={inp} style={inpStyle} />
+                        <input name="teamAway" required defaultValue={m.teamAway} placeholder="Gość" className={inp} style={inpStyle} />
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <select name="phase" required defaultValue={m.phase} className={inp} style={inpStyle}>
+                          {PHASES.map((p) => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                        <input name="group" defaultValue={m.group ?? ''} placeholder="Grupa (np. A)" className={inp} style={inpStyle} />
+                        <input name="kickoff" type="datetime-local" required defaultValue={toDatetimeLocal(m.kickoff)} className={inp} style={inpStyle} />
+                      </div>
+                      <button type="submit" className={btnCls}>Zapisz zmiany</button>
+                    </form>
+                  )}
+
+                  {/* Wprowadź wynik — tylko dla przeszłych meczów */}
+                  {isPast && (
+                    <form action={enterResultsAction} className="border-t border-zinc-200/60 px-4 py-4 space-y-3">
+                      <p className="text-xs font-black text-zinc-500 uppercase tracking-wide">
+                        {m.status === 'finished' ? 'Zmień wynik' : 'Wprowadź wynik'}
+                      </p>
+                      <input type="hidden" name="matchId" value={m.id} />
+                      <div className="flex items-center gap-3">
+                        <input type="number" name="scoreHome" min={0} max={30} required
+                          placeholder={m.teamHome}
+                          defaultValue={m.scoreHome ?? ''}
+                          className={`${inp} w-24`} style={inpStyle} />
+                        <span className="text-zinc-400 font-bold">–</span>
+                        <input type="number" name="scoreAway" min={0} max={30} required
+                          placeholder={m.teamAway}
+                          defaultValue={m.scoreAway ?? ''}
+                          className={`${inp} w-24`} style={inpStyle} />
+                      </div>
+                      <input type="text" name="scorers" list="all-players-admin"
+                        defaultValue={(m as { scorers?: string | null }).scorers ?? ''}
+                        placeholder='Strzelec 1. bramki, "Brak gola" lub "Gol samobójczy"'
+                        className={inp} style={inpStyle} />
+                      <button type="submit" className={btnCls}>
+                        Zapisz wynik i przelicz punkty ({m._count.predictions})
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Typy uczestników — tylko dla zakończonych */}
+                  {m.status === 'finished' && m._count.predictions > 0 && (
+                    <div className="border-t border-zinc-200/60">
+                      <a href={`/admin?tab=mecze${isPred ? '' : `&predId=${m.id}`}`}
+                        className="flex items-center justify-between px-4 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-50/50 transition-colors cursor-pointer">
+                        <span>{isPred ? '▲ Ukryj typy' : `▼ Pokaż typy (${m._count.predictions})`}</span>
+                      </a>
+                      {isPred && (
+                        <div className="px-4 pb-3 space-y-1.5">
+                          {matchPredictions.map((p) => (
+                            <div key={p.id} className="flex items-center gap-2 text-xs py-1.5 border-b border-zinc-100/60 last:border-0">
+                              <span className="font-bold text-zinc-800 w-28 truncate">{p.user.name}</span>
+                              <span className="text-zinc-500 flex-1">
+                                {p.winner === 'home' ? m.teamHome : p.winner === 'away' ? m.teamAway : 'Remis'}
+                                {p.scoreHome !== null ? ` · ${p.scoreHome}–${p.scoreAway}` : ''}
+                                {p.scorer ? ` · ${p.scorer}` : ''}
+                              </span>
+                              <span className={`font-black px-2 py-0.5 rounded-full flex-shrink-0 ${p.points > 0 ? 'bg-green-100 text-green-700' : 'bg-zinc-100 text-zinc-400'}`}>
+                                {p.points} pkt
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         )}
 
@@ -133,50 +224,6 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* ── WYNIKI ── */}
-        {tab === 'wyniki' && (
-          <div className="space-y-4">
-            {pastMatches.length === 0 ? (
-              <div className="text-center py-16 text-white/30"><div className="text-4xl mb-2">✅</div><p>Brak zakończonych meczów</p></div>
-            ) : pastMatches.map((m) => (
-              <div key={m.id} className={`card rounded-2xl p-5 border shadow-lg ${m.status === 'finished' ? 'border-green-200' : 'border-zinc-200/60'}`}>
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="font-bold text-zinc-900">{m.teamHome} vs {m.teamAway}</p>
-                    <p className="text-xs text-zinc-500">{m.phase}{m.group ? ` · Gr.${m.group}` : ''} · {fmt(m.kickoff)} · {m._count.predictions} typowań</p>
-                  </div>
-                  {m.status === 'finished' && (
-                    <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded-lg">{m.scoreHome}–{m.scoreAway} ✓</span>
-                  )}
-                </div>
-                <form action={enterResultsAction} className="space-y-3">
-                  <input type="hidden" name="matchId" value={m.id} />
-                  <div>
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">Wynik</p>
-                    <div className="flex items-center gap-3">
-                      <input type="number" name="scoreHome" min={0} max={30} required placeholder={m.teamHome} className={`${inp} w-24`} style={inpStyle} />
-                      <span className="text-zinc-400 font-bold">–</span>
-                      <input type="number" name="scoreAway" min={0} max={30} required placeholder={m.teamAway} className={`${inp} w-24`} style={inpStyle} />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-1.5">Strzelec pierwszej bramki</p>
-                    <input type="text" name="scorers" list="all-players-admin"
-                      placeholder='Nazwisko, "Brak gola" lub "Gol samobójczy"' className={inp} style={inpStyle} />
-                    <datalist id="all-players-admin">{players.map((p) => <option key={`${p.team}-${p.name}`} value={p.name} />)}</datalist>
-                    <div className="flex gap-2 mt-1.5">
-                      {['Brak gola','Gol samobójczy'].map((s) => (
-                        <span key={s} className="text-xs px-2 py-0.5 rounded text-zinc-500" style={{ backgroundColor: '#f5edf0' }}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <button type="submit" className={btnCls}>Zapisz wynik i przelicz punkty ({m._count.predictions})</button>
-                </form>
-              </div>
-            ))}
           </div>
         )}
 

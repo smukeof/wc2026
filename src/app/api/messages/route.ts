@@ -9,7 +9,7 @@ export async function GET() {
   const messages = await prisma.message.findMany({
     orderBy: { createdAt: 'asc' },
     take: 200,
-    include: { user: { select: { id: true, name: true } } },
+    include: { user: { select: { id: true, name: true, avatarUrl: true } } },
   })
   return NextResponse.json(messages)
 }
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   const message = await prisma.message.create({
     data: { userId, content },
-    include: { user: { select: { id: true, name: true } } },
+    include: { user: { select: { id: true, name: true, avatarUrl: true } } },
   })
   return NextResponse.json(message)
 }

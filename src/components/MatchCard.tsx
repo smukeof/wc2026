@@ -46,6 +46,7 @@ export type PredictionData = {
   scorer: string | null
   scoreHome: number | null
   scoreAway: number | null
+  points?: number
 } | null
 
 export default function MatchCard({
@@ -115,6 +116,14 @@ export default function MatchCard({
               <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Typ:</span><span className="font-semibold">{prediction.winner === 'home' ? match.teamHome : prediction.winner === 'away' ? match.teamAway : 'Remis'}</span></div>
               {prediction.scoreHome !== null && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">Wynik:</span><span className="font-mono font-semibold">{prediction.scoreHome}–{prediction.scoreAway}</span></div>}
               {prediction.scorer && <div className="flex justify-between text-zinc-800"><span className="text-zinc-500">1. bramka:</span><span className="font-semibold">{prediction.scorer}</span></div>}
+              {match.status === 'finished' && prediction.points !== undefined && (
+                <div className="flex justify-between pt-1.5 border-t border-zinc-200/60">
+                  <span className="text-zinc-500">Punkty:</span>
+                  <span className="font-black text-base" style={{ color: prediction.points > 0 ? '#C8102E' : undefined }}>
+                    {prediction.points > 0 ? `+${prediction.points}` : '0'} pkt
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

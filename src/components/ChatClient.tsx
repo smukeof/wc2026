@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-type Msg = { id: number; content: string; createdAt: string; user: { id: number; name: string } }
+type Msg = { id: number; content: string; createdAt: string; user: { id: number; name: string; avatarUrl?: string | null } }
 
 function fmt(iso: string) {
   return new Intl.DateTimeFormat('pl-PL', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
@@ -59,8 +59,16 @@ export default function ChatClient({ initialMessages, currentUserId }: { initial
         {messages.map((m) => {
           const isMe = m.user.id === currentUserId
           return (
-            <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
+            <div key={m.id} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+              {!isMe && (
+                <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-xs font-black text-white"
+                  style={{ background: 'linear-gradient(135deg, #C8102E, #F4600C)' }}>
+                  {m.user.avatarUrl
+                    ? <img src={m.user.avatarUrl} alt={m.user.name} className="w-full h-full object-cover" />
+                    : m.user.name[0]?.toUpperCase()}
+                </div>
+              )}
+              <div className={`max-w-[70%] flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}`}>
                 {!isMe && <span className="text-xs text-white/40 px-1">{m.user.name}</span>}
                 <div className={`px-3 py-2 rounded-2xl text-sm shadow-sm ${
                   isMe
