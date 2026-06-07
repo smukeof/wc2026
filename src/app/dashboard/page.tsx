@@ -54,7 +54,7 @@ const pillCls = (active: boolean) =>
       : 'card text-zinc-600 border-zinc-200 hover:border-brand-300'
   }`
 
-export default async function DashboardPage({ searchParams }: { searchParams: { round?: string } }) {
+export default async function DashboardPage({ searchParams }: { searchParams: { round?: string; filter?: string } }) {
   const user = await getSessionUser()
   if (!user) redirect('/')
 
@@ -86,11 +86,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
   const predMap = new Map(userPredictions.map((p) => [p.matchId, p]))
   const totalPoints = userPredictions.reduce((sum, p) => sum + p.points, 0)
+  const filterUnbet = searchParams.filter === 'unbet'
 
   const roundPills = () => (
-    <div className="flex flex-wrap gap-2 mb-5">
+    <div className="flex flex-wrap gap-2 mb-3">
       {availableRounds.map((r) => (
-        <a key={r.key} href={`/dashboard?round=${r.key}`}
+        <a key={r.key} href={`/dashboard?round=${r.key}${filterUnbet ? '&filter=unbet' : ''}`}
           className={pillCls(r.key === activeRound?.key)}
           style={r.key === activeRound?.key ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
           {r.label}
@@ -122,6 +123,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
 
         {roundPills()}
 
+        {/* Filtr */}
+        <div className="flex gap-2 mb-5">
+          <a href={`/dashboard?round=${activeRound?.key ?? 'K1'}${filterUnbet ? '' : '&filter=unbet'}`}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${
+              filterUnbet
+                ? 'text-white border-transparent shadow-sm'
+                : 'card text-zinc-500 border-zinc-200 hover:border-brand-300'
+            }`}
+            style={filterUnbet ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+            {filterUnbet ? '✕' : '🎯'} Do obstawienia
+          </a>
+        </div>
+
         {/* ── TYPY ── */}
         <div className="space-y-3">
             {roundMatches.length === 0 && (
@@ -132,32 +146,52 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             {activeRound?.phase.startsWith('Kolejka')
               ? ['A','B','C','D','E','F','G','H','I','J','K','L']
                   .filter((g) => roundMatches.some((m) => m.group === g))
-                  .map((group) => (
-                    <div key={group}>
-                      <div className="flex items-center gap-2 mb-2 mt-5">
-                        <div className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: GROUP_COLORS[group] ?? '#C8102E' }} />
-                        <h3 className="text-xs font-black uppercase tracking-widest"
-                          style={{ color: GROUP_COLORS[group] ?? '#C8102E' }}>
-                          Grupa {group}
-                        </h3>
-                        <div className="flex-1 h-px" style={{ backgroundColor: `${GROUP_COLORS[group] ?? '#C8102E'}30` }} />
+                  .map((group) => {
+                    const groupMatches = roundMatches.filter((m) => m.group === group)
+                    const displayMatches = filterUnbet
+                      ? groupMatches.filter((m) => new Date(m.kickoff) > now && !predMap.has(m.id))
+                      : groupMatches
+                    if (displayMatches.length === 0) return null
+                    return (
+                      <div key={group}>
+                        <div className="flex items-center gap-2 mb-2 mt-5">
+                          <div className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: GROUP_COLORS[group] ?? '#C8102E' }} />
+                          <h3 className="text-xs font-black uppercase tracking-widest"
+                            style={{ color: GROUP_COLORS[group] ?? '#C8102E' }}>
+                            Grupa {group}
+                          </h3>
+                          <div className="flex-1 h-px" style={{ backgroundColor: `${GROUP_COLORS[group] ?? '#C8102E'}30` }} />
+                        </div>
+                        <div className="space-y-3">
+                          {displayMatches.map((match) => (
+                            <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
+                              matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                              isOpen={new Date(match.kickoff) > now}
+                              round={activeRound?.key} />
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-3">
-                        {roundMatches.filter((m) => m.group === group).map((match) => (
-                          <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
-                            matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
-                            isOpen={new Date(match.kickoff) > now} />
-                        ))}
-                      </div>
-                    </div>
+                    )
+                  })
+              : (() => {
+                  const displayMatches = filterUnbet
+                    ? roundMatches.filter((m) => new Date(m.kickoff) > now && !predMap.has(m.id))
+                    : roundMatches
+                  return displayMatches.map((match) => (
+                    <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
+                      matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                      isOpen={new Date(match.kickoff) > now}
+                      round={activeRound?.key} />
                   ))
-              : roundMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} prediction={predMap.get(match.id) ?? null}
-                    matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
-                    isOpen={new Date(match.kickoff) > now} />
-                ))
+                })()
             }
+            {filterUnbet && roundMatches.every((m) => new Date(m.kickoff) <= now || predMap.has(m.id)) && (
+              <div className="text-center py-12 text-white/40">
+                <div className="text-4xl mb-2">✅</div>
+                <p className="font-bold">Wszystko obstawione w tej kolejce!</p>
+              </div>
+            )}
           </div>
       </div>
     </div>

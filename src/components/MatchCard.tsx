@@ -50,12 +50,13 @@ export type PredictionData = {
 } | null
 
 export default function MatchCard({
-  match, prediction, matchPlayers, isOpen,
+  match, prediction, matchPlayers, isOpen, round,
 }: {
   match: MatchData
   prediction: PredictionData
   matchPlayers: string[]
   isOpen: boolean
+  round?: string
 }) {
   const initialScorer = prediction?.scorer ?? ''
   const initSpecial = SPECIAL_SCORERS.includes(initialScorer) ? initialScorer : ''
@@ -135,6 +136,7 @@ export default function MatchCard({
           <form action={savePredictionAction} className="px-4 py-3 space-y-3">
             <input type="hidden" name="matchId" value={match.id} />
             <input type="hidden" name="scorer" value={effectiveScorer} />
+            {round && <input type="hidden" name="round" value={round} />}
 
             {/* Winner */}
             <div>

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/db'
 import NavBar from '@/components/NavBar'
-import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction } from '@/app/actions'
+import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction, sendPatchNotesAction } from '@/app/actions'
 
 const PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3','1/16 finału','1/8 finału','Ćwierćfinały','Półfinały','Mecz o 3. miejsce','Finał']
 const TEAMS = ['Meksyk','RPA','Korea Południowa','Czechy','Kanada','Bośnia i Hercegowina','Katar','Szwajcaria','Brazylia','Maroko','Haiti','Szkocja','USA','Paragwaj','Australia','Turcja','Niemcy','Curaçao','Wybrzeże Kości Słoniowej','Ekwador','Holandia','Japonia','Szwecja','Tunezja','Belgia','Egipt','Iran','Nowa Zelandia','Hiszpania','Wyspy Zielonego Przylądka','Arabia Saudyjska','Urugwaj','Francja','Senegal','Irak','Norwegia','Argentyna','Algieria','Austria','Jordania','Portugalia','DR Kongo','Uzbekistan','Kolumbia','Anglia','Chorwacja','Ghana','Panama']
@@ -140,9 +140,8 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                     </form>
                   )}
 
-                  {/* Wprowadź wynik — tylko dla przeszłych meczów */}
-                  {isPast && (
-                    <form action={enterResultsAction} className="border-t border-zinc-200/60 px-4 py-4 space-y-3">
+                  {/* Wprowadź wynik */}
+                  <form action={enterResultsAction} className="border-t border-zinc-200/60 px-4 py-4 space-y-3">
                       <p className="text-xs font-black text-zinc-500 uppercase tracking-wide">
                         {m.status === 'finished' ? 'Zmień wynik' : 'Wprowadź wynik'}
                       </p>
@@ -166,7 +165,6 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                         Zapisz wynik i przelicz punkty ({m._count.predictions})
                       </button>
                     </form>
-                  )}
 
                   {/* Typy uczestników — tylko dla zakończonych */}
                   {m.status === 'finished' && m._count.predictions > 0 && (
@@ -223,6 +221,13 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                   )}
                 </div>
               ))}
+            </div>
+            <div className="card rounded-2xl p-5 border border-zinc-200/60 shadow-lg">
+              <h2 className="font-bold text-zinc-900 mb-2">Patch notes na chat</h2>
+              <p className="text-xs text-zinc-500 mb-3">Usuwa Twoje poprzednie wiadomości i wysyła na chat informację o zmianach.</p>
+              <form action={sendPatchNotesAction}>
+                <button type="submit" className={btnCls}>📢 Wyślij patch notes</button>
+              </form>
             </div>
           </div>
         )}
