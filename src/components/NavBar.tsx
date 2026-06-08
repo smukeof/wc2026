@@ -6,7 +6,7 @@ import { logoutAction } from '@/app/actions'
 interface NavBarProps {
   userName: string
   isAdmin: boolean
-  activeTab: 'dashboard' | 'ranking' | 'chat' | 'drabinka' | 'admin' | 'profile'
+  activeTab: 'dashboard' | 'ranking' | 'chat' | 'drabinka' | 'admin' | 'profile' | 'player'
   avatarUrl?: string
 }
 
