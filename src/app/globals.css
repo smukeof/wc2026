@@ -3,26 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  /* Fallback przed załadowaniem JS i mozaiki */
+  html {
+    background-color: #140005;
+  }
+  html:not(.dark) {
+    background-color: #F5EEF0;
+  }
+
   body {
     @apply text-zinc-900 transition-colors;
-    background-color: #F5EEF0;
-    background-image:
-      linear-gradient(rgba(245,238,240,0.72), rgba(245,238,240,0.72)),
-      url('/tlo.jpg');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
+    background: transparent;
   }
 
   html.dark body {
-    background-color: #140005;
     color: #f5e8ec;
-    background-image:
-      linear-gradient(rgba(20,0,5,0.62), rgba(20,0,5,0.62)),
-      url('/tlo.jpg');
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
   }
 }
 
