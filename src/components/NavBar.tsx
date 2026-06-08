@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ThemeToggle from './ThemeToggle'
+import MusicPlayer from './MusicPlayer'
 import { logoutAction } from '@/app/actions'
 
 interface NavBarProps {
@@ -55,6 +56,7 @@ export default function NavBar({ userName, isAdmin, activeTab, avatarUrl }: NavB
           )}
           <span className="text-xs text-white/30 font-medium">{userName}</span>
         </Link>
+        <MusicPlayer />
         <ThemeToggle />
         <form action={logoutAction}>
           <button className="text-xs px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-white/40 transition-colors shrink-0">
