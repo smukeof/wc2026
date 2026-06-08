@@ -20,8 +20,22 @@ export default function MusicPlayer() {
       audio.play()
     }
     audio.addEventListener('ended', next)
+
+    // Odpal przy pierwszej interakcji użytkownika
+    const startOnInteraction = () => {
+      audio.play().then(() => {
+        setOn(true)
+        document.removeEventListener('click', startOnInteraction)
+        document.removeEventListener('keydown', startOnInteraction)
+      }).catch(() => {})
+    }
+    document.addEventListener('click', startOnInteraction)
+    document.addEventListener('keydown', startOnInteraction)
+
     return () => {
       audio.removeEventListener('ended', next)
+      document.removeEventListener('click', startOnInteraction)
+      document.removeEventListener('keydown', startOnInteraction)
       audio.pause()
     }
   }, [])
