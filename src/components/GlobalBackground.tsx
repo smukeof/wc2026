@@ -41,7 +41,6 @@ export default function GlobalBackground({
 }) {
   const [grid, setGrid] = useState<string[]>([])
   const [cols, setCols] = useState(10)
-  const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
     const rebuild = () => {
@@ -49,7 +48,6 @@ export default function GlobalBackground({
       const images = dark ? messiImages : cr7Images
       const c = Math.ceil(window.innerWidth / TILE) + 1
       const r = Math.ceil(window.innerHeight / TILE) + 1
-      setIsDark(dark)
       setCols(c)
       setGrid(buildGrid(images, c, r))
     }
@@ -68,8 +66,6 @@ export default function GlobalBackground({
       observer.disconnect()
     }
   }, [cr7Images, messiImages])
-
-  const overlay = isDark ? 'rgba(20,0,5,0.62)' : 'rgba(245,238,240,0.72)'
 
   return (
     <>
@@ -91,10 +87,10 @@ export default function GlobalBackground({
           />
         ))}
       </div>
-      {/* Przyciemniony overlay */}
+      {/* Ciemny overlay — oba motywy ciemne */}
       <div
         className="fixed inset-0 pointer-events-none"
-        style={{ zIndex: 1, backgroundColor: overlay, transition: 'background-color 0.4s' }}
+        style={{ zIndex: 1, backgroundColor: 'rgba(8, 4, 18, 0.70)', transition: 'background-color 0.5s' }}
       />
     </>
   )

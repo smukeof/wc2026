@@ -14,27 +14,27 @@ export default function NavBar({ userName, isAdmin, activeTab, avatarUrl }: NavB
   const link = (tab: typeof activeTab, href: string, label: string) => (
     <Link href={href} className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
       activeTab === tab
-        ? 'text-white shadow-sm'
-        : 'text-white/55 hover:text-white hover:bg-white/10'
+        ? 'font-black'
+        : 'text-white/45 hover:text-white/80 hover:bg-white/08'
     }`}
-    style={activeTab === tab ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}
+    style={activeTab === tab
+      ? { color: '#c9a227', background: 'rgba(201,162,39,0.12)', border: '1px solid rgba(201,162,39,0.18)' }
+      : undefined
+    }
     >{label}</Link>
   )
 
   return (
-    <nav className="sticky top-0 z-10 border-b border-white/8" style={{ backgroundColor: '#0C0003' }}>
-      <div style={{
-        height: '5px',
-        width: '100%',
-        background: 'linear-gradient(90deg, #C8102E 0%, #F4600C 18%, #FFD700 36%, #7DBB2D 54%, #0033A0 74%, #6B3FA0 100%)'
-      }} />
+    <nav className="sticky top-0 z-10 border-b"
+      style={{ backgroundColor: 'rgba(6, 4, 14, 0.96)', backdropFilter: 'blur(16px)', borderColor: 'rgba(255,255,255,0.06)' }}>
       <div className="max-w-3xl mx-auto px-4 flex items-center gap-1.5 py-2.5">
         <div className="flex items-center gap-2 mr-2 shrink-0">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shadow-md"
-            style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>⚽</div>
-          <span className="font-black text-white/90 hidden sm:block text-sm tracking-tight">
-            <span style={{ color: '#C8102E' }}>MUN</span><span style={{ color: '#F4600C' }}>DIAL</span>{' '}
-            <span style={{ color: '#FFD700' }}>26</span>
+            style={{ background: 'rgba(201,162,39,0.15)', border: '1px solid rgba(201,162,39,0.25)' }}>
+            <span style={{ color: '#c9a227' }}>⚽</span>
+          </div>
+          <span className="font-black hidden sm:block text-sm tracking-tight" style={{ color: '#c9a227' }}>
+            MUNDIAL 26
           </span>
         </div>
         <div className="flex gap-0.5 flex-1 overflow-x-auto scrollbar-none">
@@ -49,17 +49,20 @@ export default function NavBar({ userName, isAdmin, activeTab, avatarUrl }: NavB
           {avatarUrl ? (
             <img src={avatarUrl} alt={userName} className="w-6 h-6 rounded-full object-cover" />
           ) : (
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black text-white"
-              style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black"
+              style={{ background: 'rgba(201,162,39,0.20)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.25)' }}>
               {userName[0]?.toUpperCase()}
             </div>
           )}
-          <span className="text-xs text-white/30 font-medium">{userName}</span>
+          <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>{userName}</span>
         </Link>
         <MusicPlayer />
         <ThemeToggle />
         <form action={logoutAction}>
-          <button className="text-xs px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-white/40 transition-colors shrink-0">
+          <button className="text-xs px-2.5 py-1.5 rounded-lg transition-colors shrink-0"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}>
             Wyloguj
           </button>
         </form>

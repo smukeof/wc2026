@@ -3,76 +3,90 @@
 @tailwind utilities;
 
 @layer base {
-  /* Fallback przed załadowaniem JS i mozaiki */
+  /* Fallback kolor przed załadowaniem mozaiki */
   html {
-    background-color: #140005;
-  }
-  html:not(.dark) {
-    background-color: #F5EEF0;
+    background-color: #080414;
   }
 
   body {
-    @apply text-zinc-900 transition-colors;
     background: transparent;
+    color: #f0eef5;
+    @apply transition-colors;
   }
 
-  html.dark body {
-    color: #f5e8ec;
-  }
+  /* Nadpisanie text-zinc wewnątrz kart — zawsze ciemny motyw */
+  .card .text-zinc-900 { color: rgba(240,238,245,0.95) !important; }
+  .card .text-zinc-800 { color: rgba(240,238,245,0.85) !important; }
+  .card .text-zinc-700 { color: rgba(240,238,245,0.70) !important; }
+  .card .text-zinc-600 { color: rgba(240,238,245,0.55) !important; }
+  .card .text-zinc-500 { color: rgba(240,238,245,0.45) !important; }
+  .card .text-zinc-400 { color: rgba(240,238,245,0.35) !important; }
+  .card .border-zinc-200 { border-color: rgba(255,255,255,0.07) !important; }
+  .card .border-zinc-100 { border-color: rgba(255,255,255,0.05) !important; }
 }
 
 @layer components {
   .card {
-    background-color: #ffffff;
-    border-color: #e8d5da;
-    color: #1a0007;
-  }
-  html.dark .card {
-    background-color: #fff8fa;
-    border-color: rgba(200, 16, 46, 0.14);
-    color: #1a0007;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(200,16,46,0.07);
+    background: rgba(10, 7, 22, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-color: rgba(255, 255, 255, 0.07);
+    color: #f0eef5;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05);
   }
 
   .card-input {
     @apply w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500;
-    background-color: #f5edf0;
-    border-color: #e0c8d0;
-    color: #1a0007;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f0eef5;
   }
   .card-input::placeholder {
-    color: #b89aa0;
+    color: rgba(240, 238, 245, 0.3);
   }
 
-  /* Tęczowy pasek FIFA */
-  .fifa-stripe {
-    height: 5px;
+  /* Subtelna linia akcentu (zamiast tęczy) */
+  .accent-stripe {
+    height: 2px;
     width: 100%;
-    background: linear-gradient(90deg,
-      #C8102E 0%,
-      #F4600C 18%,
-      #FFD700 36%,
-      #7DBB2D 54%,
-      #0033A0 74%,
-      #6B3FA0 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, #c9a227 40%, #c9a227 60%, transparent 100%);
+    opacity: 0.6;
   }
 
-  /* Gradient tekst dla nagłówków sekcji */
-  .fifa-gradient-text {
-    background: linear-gradient(90deg, #C8102E 0%, #F4600C 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Tekst akcentowy */
+  .accent-text {
+    color: #c9a227;
   }
 
   /* Gradient przycisk */
+  .btn-accent {
+    background: linear-gradient(135deg, #c9a227 0%, #a88520 100%);
+    color: #0d0a1a;
+    @apply font-black rounded-xl transition-all active:scale-95 shadow-lg;
+  }
+  .btn-accent:hover {
+    background: linear-gradient(135deg, #d4b340 0%, #c9a227 100%);
+  }
+
+  /* Stare aliasy zachowane dla kompatybilności */
   .btn-fifa {
-    background: linear-gradient(135deg, #C8102E 0%, #F4600C 100%);
-    @apply text-white font-black rounded-xl transition-all active:scale-95 shadow-lg;
+    background: linear-gradient(135deg, #c9a227 0%, #a88520 100%);
+    color: #0d0a1a;
+    @apply font-black rounded-xl transition-all active:scale-95 shadow-lg;
   }
   .btn-fifa:hover {
-    background: linear-gradient(135deg, #A50D25 0%, #d44e08 100%);
+    background: linear-gradient(135deg, #d4b340 0%, #c9a227 100%);
+  }
+
+  .fifa-gradient-text {
+    color: #c9a227;
+  }
+
+  .fifa-stripe {
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent 0%, #c9a227 50%, transparent 100%);
+    opacity: 0.5;
   }
 }
 
