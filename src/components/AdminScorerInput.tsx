@@ -8,7 +8,7 @@ export default function AdminScorerInput({ defaultValue }: { defaultValue: strin
   const [value, setValue] = useState(defaultValue)
 
   const inp = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
-  const inpStyle = { backgroundColor: '#f5edf0', borderColor: '#e0c8d0', color: '#1a0007' }
+  const inpStyle = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', color: '#f0eef5' }
 
   return (
     <div>
@@ -18,8 +18,8 @@ export default function AdminScorerInput({ defaultValue }: { defaultValue: strin
             onClick={() => setValue((v) => v === s ? '' : s)}
             className="px-3 py-1 rounded-lg text-xs font-bold border transition-all"
             style={value === s
-              ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', borderColor: 'transparent' }
-              : { backgroundColor: '#f5edf0', borderColor: '#e0c8d0', color: '#7a3040' }}>
+              ? { background: 'rgba(201,162,39,0.20)', color: '#c9a227', borderColor: 'rgba(201,162,39,0.40)' }
+              : { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.60)' }}>
             {s === 'Brak gola' ? '⛔ Brak gola' : '↩️ Gol samobójczy'}
           </button>
         ))}

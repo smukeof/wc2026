@@ -66,8 +66,8 @@ export default function ChatClient({ initialMessages, currentUserId, isAdmin }: 
           return (
             <div key={m.id} className={`group flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
               {!isMe && (
-                <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-xs font-black text-white"
-                  style={{ background: 'linear-gradient(135deg, #C8102E, #F4600C)' }}>
+                <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-xs font-black"
+                  style={{ background: 'rgba(201,162,39,0.20)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.30)' }}>
                   {m.user.avatarUrl
                     ? <img src={m.user.avatarUrl} alt={m.user.name} className="w-full h-full object-cover" />
                     : m.user.name[0]?.toUpperCase()}
@@ -80,7 +80,7 @@ export default function ChatClient({ initialMessages, currentUserId, isAdmin }: 
                     ? 'text-white rounded-br-sm'
                     : 'card border border-zinc-200/60 text-zinc-900 rounded-bl-sm'
                 }`}
-                style={isMe ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+                style={isMe ? { background: 'linear-gradient(135deg, #c9a227 0%, #a88520 100%)', color: '#0d0a1a' } : undefined}>
                   <span className="whitespace-pre-wrap">{m.content}</span>
                 </div>
                 <span className="text-xs text-white/25 px-1">{fmt(m.createdAt)}</span>
@@ -107,12 +107,12 @@ export default function ChatClient({ initialMessages, currentUserId, isAdmin }: 
           placeholder="Napisz wiadomość… (Shift+Enter = nowa linia)"
           maxLength={3000}
           rows={1}
-          style={{ backgroundColor: '#fff8fa', borderColor: 'rgba(200,16,46,0.15)', color: '#1a0007', resize: 'none', minHeight: '42px', maxHeight: '120px' }}
-          className="flex-1 px-4 py-2.5 rounded-xl border placeholder-[#b89aa0] focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm overflow-y-auto"
+          style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', color: '#f0eef5', resize: 'none', minHeight: '42px', maxHeight: '120px' }}
+          className="flex-1 px-4 py-2.5 rounded-xl border placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm overflow-y-auto"
         />
         <button onClick={send} disabled={!draft.trim() || sending}
           className="px-4 py-2.5 disabled:opacity-40 text-white font-black rounded-xl transition-all text-sm shadow-md active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>
+          style={{ background: 'linear-gradient(135deg, #c9a227 0%, #a88520 100%)', color: '#0d0a1a' }}>
           Wyślij
         </button>
       </div>

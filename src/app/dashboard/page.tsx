@@ -20,8 +20,8 @@ const ROUNDS = [
 const GROUP_PHASES = ['Kolejka 1', 'Kolejka 2', 'Kolejka 3']
 
 const GROUP_COLORS: Record<string, string> = {
-  A: '#C8102E', B: '#F4600C', C: '#c9a227', D: '#7DBB2D',
-  E: '#0033A0', F: '#6B3FA0', G: '#C8102E', H: '#F4600C',
+  A: '#c9a227', B: '#a88520', C: '#e8c155', D: '#7DBB2D',
+  E: '#0033A0', F: '#6B3FA0', G: '#d4a848', H: '#cd7f32',
   I: '#7DBB2D', J: '#0033A0', K: '#6B3FA0', L: '#c9a227',
 }
 

@@ -7,9 +7,9 @@ const KNOCKOUT_PHASES = ['1/16 finału','1/8 finału','Ćwierćfinały','Półfi
 const GROUP_PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3']
 
 const GROUP_COLORS: Record<string, string> = {
-  A: '#C8102E', B: '#F4600C', C: '#FFD700', D: '#7DBB2D',
-  E: '#0033A0', F: '#6B3FA0', G: '#C8102E', H: '#F4600C',
-  I: '#7DBB2D', J: '#0033A0', K: '#6B3FA0', L: '#C8102E',
+  A: '#c9a227', B: '#a88520', C: '#FFD700', D: '#7DBB2D',
+  E: '#0033A0', F: '#6B3FA0', G: '#d4a848', H: '#cd7f32',
+  I: '#7DBB2D', J: '#0033A0', K: '#6B3FA0', L: '#e8c155',
 }
 
 const FLAGS: Record<string, string> = {
@@ -102,11 +102,11 @@ export default async function DrabinaPage({ searchParams }: { searchParams: { vi
 
         <div className="flex gap-2 mb-6">
           <a href="/drabinka" className={tabCls(view === 'grupy')}
-            style={view === 'grupy' ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+            style={view === 'grupy' ? { background: 'rgba(201,162,39,0.12)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.25)' } : undefined}>
             Grupy
           </a>
           <a href="/drabinka?view=puchar" className={tabCls(view === 'puchar')}
-            style={view === 'puchar' ? { background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' } : undefined}>
+            style={view === 'puchar' ? { background: 'rgba(201,162,39,0.12)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.25)' } : undefined}>
             Faza pucharowa
           </a>
         </div>
@@ -123,7 +123,7 @@ export default async function DrabinaPage({ searchParams }: { searchParams: { vi
             {groups.map((group) => {
               const gMatches = groupMatches.filter((m) => m.group === group)
               const standings = calcStandings(gMatches)
-              const color = GROUP_COLORS[group] ?? '#C8102E'
+              const color = GROUP_COLORS[group] ?? '#c9a227'
               const totalRounds = GROUP_PHASES.length
               const teamsCount = standings.length
 
@@ -228,7 +228,7 @@ export default async function DrabinaPage({ searchParams }: { searchParams: { vi
               return (
                 <div key={phase}>
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#F4600C' }}>{phase}</span>
+                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#c9a227' }}>{phase}</span>
                     <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(244,96,12,0.2)' }} />
                   </div>
                   <div className="space-y-3">

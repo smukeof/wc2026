@@ -167,23 +167,12 @@ export default function MatchCard({
                 {([{ val: 'home', label: match.teamHome }, { val: 'draw', label: 'Remis' }, { val: 'away', label: match.teamAway }] as const).map(({ val, label }) => (
                   <label key={val} className="cursor-pointer">
                     <input type="radio" name="winner" value={val} defaultChecked={prediction?.winner === val} className="sr-only peer" required />
-                    <span className="block text-center text-xs py-2 px-1 rounded-lg border transition-all font-bold truncate"
-                      style={{ borderColor: 'rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.7)' }}
-                      /* peer-checked handled inline below */ >
+                    <span className="block text-center text-xs py-2 px-1 rounded-lg border transition-all font-bold truncate bg-white/5 border-white/10 text-white/70 peer-checked:bg-brand-500/20 peer-checked:border-brand-500/50 peer-checked:text-brand-300">
                       {label}
                     </span>
-                    {/* CSS peer-checked via global — using a wrapper trick */}
                   </label>
                 ))}
               </div>
-              {/* Peer-checked style workaround — inject via style tag is complex, use Tailwind's peer-checked */}
-              <style>{`
-                .peer:checked ~ span {
-                  background: rgba(201,162,39,0.18) !important;
-                  border-color: rgba(201,162,39,0.50) !important;
-                  color: #c9a227 !important;
-                }
-              `}</style>
             </div>
 
             {/* Score */}

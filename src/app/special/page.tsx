@@ -39,20 +39,20 @@ const CONTINENTS = [
 ]
 
 const BETS = [
-  { type: 'winner',        label: 'Zwycięzca turnieju',                  pts: 25, icon: '🏆', mode: 'team',       color: '#C8102E' },
-  { type: 'topScorer',     label: 'Król strzelców',                      pts: 20, icon: '⚽', mode: 'player',     color: '#F4600C' },
+  { type: 'winner',        label: 'Zwycięzca turnieju',                  pts: 25, icon: '🏆', mode: 'team',       color: '#c9a227' },
+  { type: 'topScorer',     label: 'Król strzelców',                      pts: 20, icon: '⚽', mode: 'player',     color: '#d4a848' },
   { type: 'mostAssists',   label: 'Najwięcej asyst',                     pts: 10, icon: '🎯', mode: 'player',     color: '#FFD700' },
   { type: 'goalkeeper',    label: 'Bramkarz turnieju',                   pts:  5, icon: '🧤', mode: 'goalkeeper', color: '#7DBB2D' },
   { type: 'continent',     label: 'Zwycięski kontynent',                 pts:  5, icon: '🌍', mode: 'continent',  color: '#0033A0' },
   { type: 'youngPlayer',   label: 'Najlepszy młody zawodnik',            pts:  5, icon: '🌟', mode: 'youngPlayer',color: '#6B3FA0' },
-  { type: 'mostGoals',     label: 'Drużyna z największą liczbą goli',    pts:  5, icon: '🔥', mode: 'team',       color: '#C8102E' },
-  { type: 'messiVsRonaldo',label: 'Messi vs Ronaldo – więcej bramek',    pts:  5, icon: '🆚', mode: 'messi',      color: '#F4600C' },
+  { type: 'mostGoals',     label: 'Drużyna z największą liczbą goli',    pts:  5, icon: '🔥', mode: 'team',       color: '#c9a227' },
+  { type: 'messiVsRonaldo',label: 'Messi vs Ronaldo – więcej bramek',    pts:  5, icon: '🆚', mode: 'messi',      color: '#a88520' },
 ] as const
 
 const GK_KEYS = ['Hornicek','Stanek','Kovar','Rangel','Ochoa','Acevedo','Williams','Goss','Chaine','Hyeon-woo','Seung-gyu','Bum-keun','Vasilj','Zlomislić','Hadzikić','St Clair','Crépeau','Goodman','Abunada','Barsham','Zakaria','Keller','Kobel','Mvogo','Alisson','Ederson','Weverton','Placide','Pierre','Duverger','Bounou','El Kajoui','Tagnaouti','Gordon','Gunn','Kelly','Beach','Izzo','Ryan','Gill','Fernández','Olveira','Bayındır','Günok','Çakır','Brady','Freese','Turner','Bodak','Doornbusch','Room','Valle','Galíndez','Ramírez','Baumann','Neuer','Nubel','Fofana','Koné','Lafont','Hayakawa','Osako','Suzuki','Flekken','Roefs','Verbruggen','Nordfeldt','Johansson','Zetterstrom','Dahmen','Ben Hassine','Chamakh','Courtois','Penders','Lammens','El Shenawy','Shobeir','Soliman','Alaa','Beiranvand','Hosseini','Niazmand','Crocombe','Paulsen','Woud','Vozinha','Rosa','dos Santos','Al-Kassar','Al-Owais','Al-Aqidi','Simón','Raya','García','Rochet','Muslera','Mele','Maignan','Risser','Samba','Talib','Hassan','Fadhil','Selvik','Nyland','Tangvik','Mendy','Diouf','Diaw','Zidane','Benbout','Mastil','Ramdane','Martínez','Rulli','Musso','Schlager','Wiegele','Pentz','Abulaila','Al-Fakhouri','Bani Attiah','Vargas','Montero','Ospina','Mpasi-Nzau','Fayulu','Epolo','Costa','Silva','Sá','Velho','Yusupov','Ergashev','Nematov','Livaković','Kotarski','Pandur','Pickford','Henderson','Trafford','Anang','Asare','Ati-Zigi','Mejia','Mosquera','Samudio']
 
 const inp = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
-const inpStyle = { backgroundColor: '#f5edf0', borderColor: '#e0c8d0', color: '#1a0007' }
+const inpStyle = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', color: '#f0eef5' }
 
 export default async function SpecialPage() {
   const user = await getSessionUser()
@@ -82,8 +82,8 @@ export default async function SpecialPage() {
         <div className="flex gap-2 mb-5">
           <a href="/dashboard" className="px-5 py-2 rounded-xl text-sm font-black card text-zinc-600 border border-zinc-200">Typy</a>
           <a href="/dashboard?view=tabela" className="px-5 py-2 rounded-xl text-sm font-black card text-zinc-600 border border-zinc-200">📊 Moja tabela</a>
-          <a href="/special" className="px-5 py-2 rounded-xl text-sm font-black text-white shadow-md"
-            style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>⭐ Specjalne</a>
+          <a href="/special" className="px-5 py-2 rounded-xl text-sm font-black shadow-md"
+            style={{ background: 'rgba(201,162,39,0.12)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.25)' }}>⭐ Specjalne</a>
         </div>
 
         <div className="mb-6">
@@ -93,12 +93,12 @@ export default async function SpecialPage() {
           {isOpen ? (
             <p className="text-sm text-white/40 mt-1">
               Zamknięcie za{' '}
-              <span className="font-black" style={{ color: '#F4600C' }}>
+              <span className="font-black" style={{ color: '#c9a227' }}>
                 {daysLeft > 0 ? `${daysLeft} dni i ${hoursLeft} h` : `${hoursLeft} h`}
               </span>
             </p>
           ) : (
-            <p className="text-sm mt-1 font-bold" style={{ color: '#C8102E' }}>🔒 Typowanie zamknięte — mundial się rozpoczął</p>
+            <p className="text-sm mt-1 font-bold" style={{ color: 'rgba(255,255,255,0.40)' }}>🔒 Typowanie zamknięte — mundial się rozpoczął</p>
           )}
         </div>
 
@@ -182,7 +182,7 @@ export default async function SpecialPage() {
                           {['Lionel Messi','Cristiano Ronaldo','Remis'].map((o) => (
                             <label key={o} className="cursor-pointer">
                               <input type="radio" name="value" value={o} defaultChecked={current?.value === o} className="sr-only peer" required />
-                              <span className="block text-center text-xs py-2 px-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 peer-checked:border-brand-500 peer-checked:bg-brand-500 peer-checked:text-white transition-all font-black">{o}</span>
+                              <span className="block text-center text-xs py-2 px-1 rounded-lg border transition-all font-black bg-white/5 border-white/10 text-white/70 peer-checked:bg-brand-500/20 peer-checked:border-brand-500/50 peer-checked:text-brand-300">{o}</span>
                             </label>
                           ))}
                         </div>
@@ -190,7 +190,7 @@ export default async function SpecialPage() {
 
                       <button type="submit"
                         className="mt-3 w-full py-2 text-white font-black rounded-xl transition-all text-sm shadow-md active:scale-95"
-                        style={{ background: `linear-gradient(135deg, ${bet.color} 0%, #F4600C 100%)` }}>
+                        style={{ background: `linear-gradient(135deg, ${bet.color} 0%, rgba(0,0,0,0.35) 100%)` }}>
                         {current ? '✏️ Zaktualizuj' : '✅ Zapisz typ'}
                       </button>
                     </form>

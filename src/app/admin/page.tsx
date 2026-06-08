@@ -31,9 +31,9 @@ function toDatetimeLocal(d: Date) {
 }
 
 const inp = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
-const inpStyle = { backgroundColor: '#f5edf0', borderColor: '#e0c8d0', color: '#1a0007' }
+const inpStyle = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)', color: '#f0eef5' }
 const btnCls = 'px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold rounded-lg transition-colors shadow-sm'
-const dangerBtnCls = 'px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold rounded-lg transition-colors'
+const dangerBtnCls = 'px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-colors'
 
 export default async function AdminPage({ searchParams }: { searchParams: { tab?: string; editId?: string; predId?: string } }) {
   const user = await getSessionUser()
@@ -111,7 +111,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                         {m.status === 'finished' ? `${m.scoreHome}–${m.scoreAway}` : 'otwarty'}
                       </span>
                       <a href={`/admin?tab=mecze${isEdit ? '' : `&editId=${m.id}`}`}
-                        className="px-2.5 py-1 text-xs font-bold rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors">
+                        className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white/10 hover:bg-white/15 text-white/60 transition-colors">
                         {isEdit ? 'Zamknij' : 'Edytuj'}
                       </a>
                       <form action={deleteMatchAction}>
@@ -213,7 +213,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                     <p className="font-semibold text-sm text-zinc-900">{u.name}{u.isAdmin && <span className="text-xs text-brand-500 ml-1">(admin)</span>}</p>
                     <p className="text-xs text-zinc-500">{u._count.predictions} typowań · {u.specialBets.length} specjalnych</p>
                   </div>
-                  <code className="text-sm font-mono px-3 py-1.5 rounded-lg select-all tracking-wider" style={{ backgroundColor: '#f5edf0', color: '#7a3040' }}>{u.code}</code>
+                  <code className="text-sm font-mono px-3 py-1.5 rounded-lg select-all tracking-wider" style={{ backgroundColor: 'rgba(201,162,39,0.12)', color: '#c9a227', border: '1px solid rgba(201,162,39,0.20)' }}>{u.code}</code>
                   {!u.isAdmin && (
                     <form action={deleteUserAction}><input type="hidden" name="targetId" value={u.id} /><button type="submit" className={dangerBtnCls}>Usuń</button></form>
                   )}
