@@ -134,12 +134,12 @@ export default async function SpecialPage() {
                   </div>
 
                   {current && (
-                    <div className={`mb-3 px-3 py-2 rounded-lg text-sm border font-medium ${
-                      isCorrect
-                        ? 'bg-green-50 border-green-200 text-green-800'
-                        : 'bg-zinc-50 border-zinc-200 text-zinc-700'
-                    }`}>
-                      Twój typ: <span className="font-black">{current.value}</span>
+                    <div className="mb-3 px-3 py-2 rounded-lg text-sm border font-medium"
+                      style={isCorrect
+                        ? { background: 'rgba(34,197,94,0.12)', borderColor: 'rgba(34,197,94,0.30)', color: '#86efac' }
+                        : { background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.10)', color: 'rgba(240,238,245,0.70)' }
+                      }>
+                      Twój typ: <span className="font-black" style={{ color: isCorrect ? '#86efac' : '#f0eef5' }}>{current.value}</span>
                     </div>
                   )}
 
@@ -166,7 +166,7 @@ export default async function SpecialPage() {
                           {CONTINENTS.map((c) => (
                             <label key={c} className="cursor-pointer">
                               <input type="radio" name="value" value={c} defaultChecked={current?.value === c} className="sr-only peer" required />
-                              <span className="block text-center text-xs py-2 px-1 rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-700 peer-checked:border-brand-500 peer-checked:bg-brand-500 peer-checked:text-white transition-all font-bold">{c}</span>
+                              <span className="block text-center text-xs py-2 px-1 rounded-lg border transition-all font-bold bg-white/5 border-white/10 text-white/70 peer-checked:bg-brand-500/20 peer-checked:border-brand-500/50 peer-checked:text-brand-300">{c}</span>
                             </label>
                           ))}
                         </div>
@@ -189,8 +189,8 @@ export default async function SpecialPage() {
                       )}
 
                       <button type="submit"
-                        className="mt-3 w-full py-2 text-white font-black rounded-xl transition-all text-sm shadow-md active:scale-95"
-                        style={{ background: `linear-gradient(135deg, ${bet.color} 0%, rgba(0,0,0,0.35) 100%)` }}>
+                        className="mt-3 w-full py-2 font-black rounded-xl transition-all text-sm active:scale-95 hover:bg-white/8"
+                        style={{ background: 'transparent', border: `1px solid ${bet.color}`, color: bet.color }}>
                         {current ? '✏️ Zaktualizuj' : '✅ Zapisz typ'}
                       </button>
                     </form>
