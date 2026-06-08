@@ -5,7 +5,7 @@ import { logoutAction } from '@/app/actions'
 interface NavBarProps {
   userName: string
   isAdmin: boolean
-  activeTab: 'dashboard' | 'ranking' | 'chat' | 'special' | 'admin' | 'profile'
+  activeTab: 'dashboard' | 'ranking' | 'chat' | 'drabinka' | 'admin' | 'profile'
   avatarUrl?: string
 }
 
@@ -38,7 +38,7 @@ export default function NavBar({ userName, isAdmin, activeTab, avatarUrl }: NavB
         </div>
         <div className="flex gap-0.5 flex-1 overflow-x-auto scrollbar-none">
           {link('dashboard', '/dashboard', 'Typy')}
-          {link('special', '/special', '⭐ Specjalne')}
+          {link('drabinka', '/drabinka', '🏆 Drabinka')}
           {link('ranking', '/ranking', 'Ranking')}
           {link('chat', '/chat', '💬 Chat')}
           {isAdmin && link('admin', '/admin', '⚙️ Admin')}

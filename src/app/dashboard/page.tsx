@@ -121,6 +121,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           <div className="text-3xl opacity-60">⚽</div>
         </div>
 
+        {/* Sub-tabs */}
+        <div className="flex gap-2 mb-5">
+          <a href="/dashboard" className="px-5 py-2 rounded-xl text-sm font-black text-white shadow-md"
+            style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>Typy</a>
+          <a href="/special" className="px-5 py-2 rounded-xl text-sm font-black card text-zinc-600 border border-zinc-200">⭐ Specjalne</a>
+        </div>
+
         {roundPills()}
 
         {/* Filtr */}
