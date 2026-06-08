@@ -140,7 +140,9 @@ export default function MatchCard({
 
             {/* Winner */}
             <div>
-              <p className="text-xs font-black text-zinc-500 mb-1.5 uppercase tracking-widest">Zwycięzca</p>
+              <p className="text-xs font-black text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Zwycięzca <span className="font-black" style={{ color: '#C8102E' }}>+1 pkt</span>
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 {([{ val: 'home', label: match.teamHome }, { val: 'draw', label: 'Remis' }, { val: 'away', label: match.teamAway }] as const).map(({ val, label }) => (
                   <label key={val} className="cursor-pointer">
@@ -156,8 +158,11 @@ export default function MatchCard({
             {/* Score */}
             <div>
               <p className="text-xs font-black text-zinc-500 mb-1.5 uppercase tracking-widest">
-                Dokładny wynik{' '}
-                <span className="font-black" style={{ color: '#C8102E' }}>+2 pkt</span>
+                Dokładny wynik
+                <span className="font-normal normal-case tracking-normal text-zinc-400 ml-1.5 text-xs">
+                  różnica <span className="font-black" style={{ color: '#C8102E' }}>+1</span>
+                  {' · '}dokładny <span className="font-black" style={{ color: '#C8102E' }}>+2 extra</span>
+                </span>
               </p>
               <div className="flex items-center gap-2">
                 <input type="number" name="scoreHome" min={0} max={20} defaultValue={prediction?.scoreHome ?? ''} placeholder="0"
@@ -172,7 +177,9 @@ export default function MatchCard({
 
             {/* First goal scorer */}
             <div>
-              <p className="text-xs font-black text-zinc-500 mb-1.5 uppercase tracking-widest">Strzelec pierwszej bramki</p>
+              <p className="text-xs font-black text-zinc-500 mb-1.5 uppercase tracking-widest">
+                Strzelec pierwszej bramki <span className="font-black" style={{ color: '#C8102E' }}>+2 pkt</span>
+              </p>
               <div className="flex gap-2 mb-2">
                 {SPECIAL_SCORERS.map((s) => (
                   <button key={s} type="button"

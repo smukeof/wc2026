@@ -81,6 +81,7 @@ export default async function SpecialPage() {
         {/* Sub-tabs */}
         <div className="flex gap-2 mb-5">
           <a href="/dashboard" className="px-5 py-2 rounded-xl text-sm font-black card text-zinc-600 border border-zinc-200">Typy</a>
+          <a href="/dashboard?view=tabela" className="px-5 py-2 rounded-xl text-sm font-black card text-zinc-600 border border-zinc-200">📊 Moja tabela</a>
           <a href="/special" className="px-5 py-2 rounded-xl text-sm font-black text-white shadow-md"
             style={{ background: 'linear-gradient(135deg, #C8102E 0%, #F4600C 100%)' }}>⭐ Specjalne</a>
         </div>
