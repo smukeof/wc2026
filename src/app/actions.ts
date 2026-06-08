@@ -264,7 +264,7 @@ export async function sendMessageAction(formData: FormData) {
   const userId = getSessionUserId()
   if (!userId) redirect('/')
   const content = (formData.get('content') as string)?.trim()
-  if (!content || content.length > 500) return
+  if (!content || content.length > 3000) return
   await prisma.message.create({ data: { userId, content } })
   revalidatePath('/chat')
   redirect('/chat')

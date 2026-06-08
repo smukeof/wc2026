@@ -105,7 +105,7 @@ export default function ChatClient({ initialMessages, currentUserId, isAdmin }: 
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
           placeholder="Napisz wiadomość… (Shift+Enter = nowa linia)"
-          maxLength={500}
+          maxLength={3000}
           rows={1}
           style={{ backgroundColor: '#fff8fa', borderColor: 'rgba(200,16,46,0.15)', color: '#1a0007', resize: 'none', minHeight: '42px', maxHeight: '120px' }}
           className="flex-1 px-4 py-2.5 rounded-xl border placeholder-[#b89aa0] focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm shadow-sm overflow-y-auto"
