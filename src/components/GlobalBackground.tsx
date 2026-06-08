@@ -90,7 +90,7 @@ export default function GlobalBackground({
       {/* Ciemny overlay — oba motywy ciemne */}
       <div
         className="fixed inset-0 pointer-events-none"
-        style={{ zIndex: 1, backgroundColor: 'rgba(8, 4, 18, 0.70)', transition: 'background-color 0.5s' }}
+        style={{ zIndex: 1, backgroundColor: 'rgba(8, 4, 18, 0.82)', transition: 'background-color 0.5s' }}
       />
     </>
   )

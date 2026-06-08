@@ -78,9 +78,11 @@ export default function ChatClient({ initialMessages, currentUserId, isAdmin }: 
                 <div className={`px-3 py-2 rounded-2xl text-sm shadow-sm ${
                   isMe
                     ? 'text-white rounded-br-sm'
-                    : 'card border border-zinc-200/60 text-zinc-900 rounded-bl-sm'
+                    : 'rounded-bl-sm'
                 }`}
-                style={isMe ? { background: 'linear-gradient(135deg, #c9a227 0%, #a88520 100%)', color: '#0d0a1a' } : undefined}>
+                style={isMe
+                  ? { background: 'linear-gradient(135deg, #c9a227 0%, #a88520 100%)', color: '#0d0a1a' }
+                  : { background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0eef5' }}>
                   <span className="whitespace-pre-wrap">{m.content}</span>
                 </div>
                 <span className="text-xs text-white/25 px-1">{fmt(m.createdAt)}</span>
