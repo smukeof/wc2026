@@ -47,15 +47,17 @@ const inpSt = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(25
 const inpCls = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
 export default function MatchCard({
-  match, prediction, matchPlayers, isOpen, round, otherPredictions = [],
+  match, prediction, homePlayers, awayPlayers, isOpen, round, otherPredictions = [],
 }: {
   match: MatchData
   prediction: PredictionData
-  matchPlayers: string[]
+  homePlayers: string[]
+  awayPlayers: string[]
   isOpen: boolean
   round?: string
   otherPredictions?: OtherPrediction[]
 }) {
+  const matchPlayers = [...homePlayers, ...awayPlayers]
   const initialScorer = prediction?.scorer ?? ''
   const initSpecial = SPECIAL_SCORERS.includes(initialScorer) ? initialScorer : ''
   const [scorerVal, setScorerVal] = useState(initSpecial ? '' : initialScorer)
@@ -64,6 +66,12 @@ export default function MatchCard({
   const [sh, setSh] = useState(prediction?.scoreHome ?? 0)
   const [sa, setSa] = useState(prediction?.scoreAway ?? 0)
   const derivedWinner = sh > sa ? match.teamHome : sh < sa ? match.teamAway : 'Remis'
+
+  function pickRandom(pool: string[]) {
+    if (!pool.length) return
+    setScorerVal(pool[Math.floor(Math.random() * pool.length)])
+    setSpecialScorer('')
+  }
 
   const msLeft = new Date(match.kickoff).getTime() - Date.now()
   const hoursLeft = Math.floor(msLeft / 1000 / 60 / 60)
@@ -193,7 +201,7 @@ export default function MatchCard({
               <p className="text-xs font-black mb-1.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 Strzelec pierwszej bramki <span className="font-black" style={{ color: ACCENT }}>+2 pkt</span>
               </p>
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 {SPECIAL_SCORERS.map((s) => (
                   <button key={s} type="button"
                     onClick={() => { setSpecialScorer(specialScorer === s ? '' : s); setScorerVal('') }}
@@ -205,6 +213,20 @@ export default function MatchCard({
                     {s === 'Brak gola' ? '⛔ Brak gola' : '↩️ Gol samobójczy'}
                   </button>
                 ))}
+                {homePlayers.length > 0 && (
+                  <button type="button" onClick={() => pickRandom(homePlayers)}
+                    className="px-3 py-1 rounded-lg text-xs font-bold border transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
+                    🎲 {match.teamHome}
+                  </button>
+                )}
+                {awayPlayers.length > 0 && (
+                  <button type="button" onClick={() => pickRandom(awayPlayers)}
+                    className="px-3 py-1 rounded-lg text-xs font-bold border transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
+                    🎲 {match.teamAway}
+                  </button>
+                )}
               </div>
               <input
                 type="text"

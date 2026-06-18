@@ -373,7 +373,8 @@ export default async function DashboardPage({
                             {displayMatches.map((match) => (
                               <MatchCard key={match.id} match={match}
                                 prediction={predMap.get(match.id) ?? null}
-                                matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                                homePlayers={players.filter((p) => p.team === match.teamHome).map((p) => p.name)}
+                                awayPlayers={players.filter((p) => p.team === match.teamAway).map((p) => p.name)}
                                 isOpen={new Date(match.kickoff) > now}
                                 round={activeRound?.key}
                                 otherPredictions={othersMap.get(match.id) ?? []} />
@@ -389,7 +390,8 @@ export default async function DashboardPage({
                     return displayMatches.map((match) => (
                       <MatchCard key={match.id} match={match}
                         prediction={predMap.get(match.id) ?? null}
-                        matchPlayers={players.filter((p) => p.team === match.teamHome || p.team === match.teamAway).map((p) => p.name)}
+                        homePlayers={players.filter((p) => p.team === match.teamHome).map((p) => p.name)}
+                        awayPlayers={players.filter((p) => p.team === match.teamAway).map((p) => p.name)}
                         isOpen={new Date(match.kickoff) > now}
                         round={activeRound?.key}
                         otherPredictions={othersMap.get(match.id) ?? []} />
