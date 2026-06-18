@@ -185,11 +185,11 @@ export default function MatchCard({
                 </span>
               </p>
               <div className="flex items-center gap-2">
-                <input type="number" name="scoreHome" min={0} max={20} defaultValue={prediction?.scoreHome ?? ''} placeholder="0"
+                <input type="number" name="scoreHome" min={0} max={20} defaultValue={prediction?.scoreHome ?? 0}
                   className="w-16 text-center py-1.5 rounded-lg border font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                   style={inpSt} />
                 <span className="font-black text-lg" style={{ color: 'rgba(255,255,255,0.3)' }}>–</span>
-                <input type="number" name="scoreAway" min={0} max={20} defaultValue={prediction?.scoreAway ?? ''} placeholder="0"
+                <input type="number" name="scoreAway" min={0} max={20} defaultValue={prediction?.scoreAway ?? 0}
                   className="w-16 text-center py-1.5 rounded-lg border font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                   style={inpSt} />
               </div>

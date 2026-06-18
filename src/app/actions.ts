@@ -80,11 +80,16 @@ export async function savePredictionAction(formData: FormData) {
   const match = await prisma.match.findUnique({ where: { id: matchId } })
   if (!match || new Date(match.kickoff) <= new Date()) redirect('/dashboard')
 
-  await prisma.prediction.upsert({
+  const pred = await prisma.prediction.upsert({
     where: { userId_matchId: { userId, matchId } },
     update: { winner, scorer, scoreHome, scoreAway },
     create: { userId, matchId, winner, scorer, scoreHome, scoreAway },
   })
+
+  if (match.status === 'finished' && match.scoreHome !== null && match.scoreAway !== null) {
+    const pts = calcPoints(pred, { scoreHome: match.scoreHome, scoreAway: match.scoreAway, scorers: match.scorers })
+    await prisma.prediction.update({ where: { id: pred.id }, data: { points: pts } })
+  }
 
   redirect(round ? `/dashboard?round=${round}` : '/dashboard')
 }
