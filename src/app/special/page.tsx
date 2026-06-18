@@ -63,15 +63,26 @@ export default async function SpecialPage() {
   const daysLeft = Math.floor(msLeft / 1000 / 60 / 60 / 24)
   const hoursLeft = Math.floor((msLeft / 1000 / 60 / 60) % 24)
 
-  const [myBets, players, results] = await Promise.all([
+  const [myBets, players, results, otherBets] = await Promise.all([
     prisma.specialBet.findMany({ where: { userId: user.id } }),
     prisma.player.findMany({ orderBy: [{ team: 'asc' }, { name: 'asc' }] }),
     prisma.specialResult.findMany(),
+    prisma.specialBet.findMany({
+      where: { userId: { not: user.id } },
+      include: { user: { select: { name: true, avatarUrl: true } } },
+      orderBy: { user: { name: 'asc' } },
+    }),
   ])
 
   const betMap = new Map(myBets.map((b) => [b.type, b]))
   const resultMap = new Map(results.map((r) => [r.type, r.value]))
   const goalkeepers = players.filter((p) => GK_KEYS.some((k) => p.name.includes(k)))
+
+  const othersMap = new Map<string, { userName: string; avatarUrl: string | null; value: string }[]>()
+  for (const bet of otherBets) {
+    if (!othersMap.has(bet.type)) othersMap.set(bet.type, [])
+    othersMap.get(bet.type)!.push({ userName: bet.user.name, avatarUrl: bet.user.avatarUrl, value: bet.value })
+  }
 
   return (
     <div className="min-h-screen">
@@ -110,6 +121,7 @@ export default async function SpecialPage() {
             const current = betMap.get(bet.type)
             const correct = resultMap.get(bet.type)
             const isCorrect = correct && current?.value?.toLowerCase() === correct.toLowerCase()
+            const others = othersMap.get(bet.type) ?? []
 
             return (
               <div key={bet.type} className="card rounded-2xl overflow-hidden shadow-lg border border-zinc-200/60"
@@ -196,6 +208,32 @@ export default async function SpecialPage() {
                     </form>
                   )}
                 </div>
+
+                {others.length > 0 && (
+                  <details className="border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                    <summary className="px-5 py-2.5 text-xs font-bold cursor-pointer list-none flex items-center justify-between"
+                      style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <span>Typy innych ({others.length})</span>
+                      <span>▼</span>
+                    </summary>
+                    <div className="px-5 pb-4 space-y-2">
+                      {others.map(({ userName, avatarUrl, value }) => (
+                        <div key={userName} className="flex items-center gap-2.5 text-xs">
+                          {avatarUrl ? (
+                            <img src={avatarUrl} alt={userName} className="w-5 h-5 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
+                              style={{ background: 'rgba(255,255,255,0.12)', color: '#f0eef5' }}>
+                              {userName[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <span className="w-20 truncate font-bold" style={{ color: 'rgba(255,255,255,0.55)' }}>{userName}</span>
+                          <span className="font-black truncate" style={{ color: '#f0eef5' }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
               </div>
             )
           })}
