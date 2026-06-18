@@ -61,6 +61,9 @@ export default function MatchCard({
   const [scorerVal, setScorerVal] = useState(initSpecial ? '' : initialScorer)
   const [specialScorer, setSpecialScorer] = useState(initSpecial)
   const [showOthers, setShowOthers] = useState(false)
+  const [sh, setSh] = useState(prediction?.scoreHome ?? 0)
+  const [sa, setSa] = useState(prediction?.scoreAway ?? 0)
+  const derivedWinner = sh > sa ? match.teamHome : sh < sa ? match.teamAway : 'Remis'
 
   const msLeft = new Date(match.kickoff).getTime() - Date.now()
   const hoursLeft = Math.floor(msLeft / 1000 / 60 / 60)
@@ -158,40 +161,30 @@ export default function MatchCard({
             <input type="hidden" name="scorer" value={effectiveScorer} />
             {round && <input type="hidden" name="round" value={round} />}
 
-            {/* Winner */}
+            {/* Score + derived winner */}
             <div>
               <p className="text-xs font-black mb-1.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Zwycięzca <span className="font-black" style={{ color: ACCENT }}>+1 pkt</span>
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {([{ val: 'home', label: match.teamHome }, { val: 'draw', label: 'Remis' }, { val: 'away', label: match.teamAway }] as const).map(({ val, label }) => (
-                  <label key={val} className="cursor-pointer">
-                    <input type="radio" name="winner" value={val} defaultChecked={prediction?.winner === val} className="sr-only peer" required />
-                    <span className="block text-center text-xs py-2 px-1 rounded-lg border transition-all font-bold truncate bg-white/5 border-white/10 text-white/70 peer-checked:bg-brand-500/20 peer-checked:border-brand-500/50 peer-checked:text-brand-300">
-                      {label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Score */}
-            <div>
-              <p className="text-xs font-black mb-1.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Dokładny wynik
+                Wynik
                 <span className="font-normal normal-case tracking-normal ml-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  różnica <span className="font-black" style={{ color: ACCENT }}>+1</span>
+                  zwycięzca <span className="font-black" style={{ color: ACCENT }}>+1</span>
+                  {' · '}różnica <span className="font-black" style={{ color: ACCENT }}>+1</span>
                   {' · '}dokładny <span className="font-black" style={{ color: ACCENT }}>+2 extra</span>
                 </span>
               </p>
-              <div className="flex items-center gap-2">
-                <input type="number" name="scoreHome" min={0} max={20} defaultValue={prediction?.scoreHome ?? 0}
+              <div className="flex items-center gap-3">
+                <input type="number" name="scoreHome" min={0} max={20} value={sh}
+                  onChange={(e) => setSh(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-16 text-center py-1.5 rounded-lg border font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                   style={inpSt} />
                 <span className="font-black text-lg" style={{ color: 'rgba(255,255,255,0.3)' }}>–</span>
-                <input type="number" name="scoreAway" min={0} max={20} defaultValue={prediction?.scoreAway ?? 0}
+                <input type="number" name="scoreAway" min={0} max={20} value={sa}
+                  onChange={(e) => setSa(Math.max(0, parseInt(e.target.value) || 0))}
                   className="w-16 text-center py-1.5 rounded-lg border font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                   style={inpSt} />
+                <span className="text-sm font-black px-3 py-1.5 rounded-lg"
+                  style={{ background: 'rgba(201,162,39,0.15)', color: ACCENT, border: '1px solid rgba(201,162,39,0.25)' }}>
+                  {derivedWinner}
+                </span>
               </div>
             </div>
 

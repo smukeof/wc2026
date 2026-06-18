@@ -349,8 +349,6 @@ export default async function DashboardPage({
                   <div className="text-4xl mb-2">📋</div><p>Brak meczów</p>
                 </div>
               )}
-              <datalist id="players-list">{players.map((p) => <option key={`${p.team}-${p.name}`} value={p.name} />)}</datalist>
-
               {activeRound?.phase.startsWith('Kolejka')
                 ? ['A','B','C','D','E','F','G','H','I','J','K','L']
                     .filter((g) => roundMatches.some((m) => m.group === g))

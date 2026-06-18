@@ -67,15 +67,13 @@ export async function savePredictionAction(formData: FormData) {
   if (!userId) redirect('/')
 
   const matchId = parseInt(formData.get('matchId') as string)
-  const winner = formData.get('winner') as string
   const scorer = (formData.get('scorer') as string)?.trim() || null
   const scoreHomeRaw = formData.get('scoreHome') as string
   const scoreAwayRaw = formData.get('scoreAway') as string
-  const scoreHome = scoreHomeRaw !== '' && scoreHomeRaw != null ? parseInt(scoreHomeRaw) : null
-  const scoreAway = scoreAwayRaw !== '' && scoreAwayRaw != null ? parseInt(scoreAwayRaw) : null
+  const scoreHome = scoreHomeRaw !== '' && scoreHomeRaw != null ? parseInt(scoreHomeRaw) : 0
+  const scoreAway = scoreAwayRaw !== '' && scoreAwayRaw != null ? parseInt(scoreAwayRaw) : 0
+  const winner = scoreHome > scoreAway ? 'home' : scoreHome < scoreAway ? 'away' : 'draw'
   const round = (formData.get('round') as string)?.trim() || null
-
-  if (!winner) redirect('/dashboard')
 
   const match = await prisma.match.findUnique({ where: { id: matchId } })
   if (!match || new Date(match.kickoff) <= new Date()) redirect('/dashboard')
