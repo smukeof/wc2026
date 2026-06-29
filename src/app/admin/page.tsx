@@ -2,10 +2,11 @@ import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/db'
 import NavBar from '@/components/NavBar'
-import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction, sendPatchNotesAction } from '@/app/actions'
+import { addMatchAction, updateMatchAction, deleteMatchAction, enterResultsAction, createUserAction, deleteUserAction, saveSpecialResultAction, activateUserAction, rejectUserAction, sendPatchNotesAction, syncResultsAction } from '@/app/actions'
 import AdminScorerInput from '@/components/AdminScorerInput'
 
 const PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3','1/16 finału','1/8 finału','Ćwierćfinały','Półfinały','Mecz o 3. miejsce','Finał']
+const GROUP_PHASES = ['Kolejka 1','Kolejka 2','Kolejka 3']
 const TEAMS = ['Meksyk','RPA','Korea Południowa','Czechy','Kanada','Bośnia i Hercegowina','Katar','Szwajcaria','Brazylia','Maroko','Haiti','Szkocja','USA','Paragwaj','Australia','Turcja','Niemcy','Curaçao','Wybrzeże Kości Słoniowej','Ekwador','Holandia','Japonia','Szwecja','Tunezja','Belgia','Egipt','Iran','Nowa Zelandia','Hiszpania','Wyspy Zielonego Przylądka','Arabia Saudyjska','Urugwaj','Francja','Senegal','Irak','Norwegia','Argentyna','Algieria','Austria','Jordania','Portugalia','DR Kongo','Uzbekistan','Kolumbia','Anglia','Chorwacja','Ghana','Panama']
 const YOUNG_PLAYERS = ['Lamine Yamal','Désiré Doué','Warren Zaïre-Emery','Lennart Karl',"Nico O'Reilly",'Arda Güler','Endrick','Pau Cubarsí','Antonio Nusa','Yan Diomande','Kenan Yıldız','Lucas Bergvall','Rayan Vitor','Kobbie Mainoo','Ibrahim Maza','Esmir Bajraktarević','Ibrahim Mbaye','Kerim Alajbegović','Semih Kılıçsoy','Jorrel Hato','Kendry Páez','Chemsdine Talbi','Luka Vušković','Mamadou Sarr','Joaquin Seys','Nestory Irankunda','Khalil Ayari','Christ Oulai','Assane Diao','Johan Manzambi','Paul Wanner','Samir El Mourabet','Jeremy Arévalo','Yassir Zabiri','Ben Doak','Caleb Yirenki','Rayane Bounida','Yassine Gessime']
 const CONTINENTS = ['Europa','Ameryka Południowa','Ameryka Północna i Środkowa','Afryka','Azja','Australia i Oceania']
@@ -92,6 +93,15 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
         {tab === 'mecze' && (
           <div className="space-y-4">
             <datalist id="all-players-admin">{players.map((p) => <option key={`${p.team}-${p.name}`} value={p.name} />)}</datalist>
+            <form action={syncResultsAction}>
+              <button type="submit" className={btnCls}>
+                🔄 Synchronizuj wyniki z API (wynik + awans)
+              </button>
+              <p className="text-xs text-zinc-500 mt-1">
+                Automat uzupełnia każdy mecz ~3h po jego zakończeniu. Ten przycisk robi to od razu.
+                Strzelca wpisz ręcznie — sync go nie nadpisuje.
+              </p>
+            </form>
             {matches.length === 0 && <p className="text-center py-8 text-white/30">Brak meczów</p>}
             {matches.map((m) => {
               const isPast = new Date(m.kickoff) <= now
@@ -159,6 +169,16 @@ export default async function AdminPage({ searchParams }: { searchParams: { tab?
                           className={`${inp} w-24`} style={inpStyle} />
                       </div>
                       <AdminScorerInput defaultValue={(m as { scorers?: string | null }).scorers ?? ''} />
+                      {!GROUP_PHASES.includes(m.phase) && (
+                        <div>
+                          <label className="text-xs font-black text-zinc-500 uppercase tracking-wide">Kto awansował (przy remisie / karne)</label>
+                          <select name="advanced" defaultValue={(m as { advanced?: string | null }).advanced ?? ''} className={inp} style={inpStyle}>
+                            <option value="">— z wyniku (auto)</option>
+                            <option value="home">{m.teamHome}</option>
+                            <option value="away">{m.teamAway}</option>
+                          </select>
+                        </div>
+                      )}
                       <button type="submit" className={btnCls}>
                         Zapisz wynik i przelicz punkty
                       </button>

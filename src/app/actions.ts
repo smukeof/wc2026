@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { getSessionUserId } from '@/lib/session'
+import { calcPoints, GROUP_PHASES } from '@/lib/scoring'
+import { syncResults } from '@/lib/syncResults'
 
 // ─── AUTH ──────────────────────────────────────────────────────────────────
 
@@ -73,23 +75,31 @@ export async function savePredictionAction(formData: FormData) {
   const scoreHome = scoreHomeRaw !== '' && scoreHomeRaw != null ? parseInt(scoreHomeRaw) : 0
   const scoreAway = scoreAwayRaw !== '' && scoreAwayRaw != null ? parseInt(scoreAwayRaw) : 0
   const winner = scoreHome > scoreAway ? 'home' : scoreHome < scoreAway ? 'away' : 'draw'
+  // Awans: przy rozstrzygniętym wyniku = zwycięzca; przy remisie = ręczny wybór gracza
+  const advanceRaw = (formData.get('advance') as string)?.trim() || null
+  const advance = winner !== 'draw' ? winner : (advanceRaw === 'home' || advanceRaw === 'away' ? advanceRaw : null)
   const round = (formData.get('round') as string)?.trim() || null
+  const filter = (formData.get('filter') as string)?.trim() || null
 
   const match = await prisma.match.findUnique({ where: { id: matchId } })
   if (!match || new Date(match.kickoff) <= new Date()) redirect('/dashboard')
 
   const pred = await prisma.prediction.upsert({
     where: { userId_matchId: { userId, matchId } },
-    update: { winner, scorer, scoreHome, scoreAway },
-    create: { userId, matchId, winner, scorer, scoreHome, scoreAway },
+    update: { winner, scorer, scoreHome, scoreAway, advance },
+    create: { userId, matchId, winner, scorer, scoreHome, scoreAway, advance },
   })
 
   if (match.status === 'finished' && match.scoreHome !== null && match.scoreAway !== null) {
-    const pts = calcPoints(pred, { scoreHome: match.scoreHome, scoreAway: match.scoreAway, scorers: match.scorers })
+    const pts = calcPoints(pred, { scoreHome: match.scoreHome, scoreAway: match.scoreAway, scorers: match.scorers, advanced: match.advanced })
     await prisma.prediction.update({ where: { id: pred.id }, data: { points: pts } })
   }
 
-  redirect(round ? `/dashboard?round=${round}` : '/dashboard')
+  const params = new URLSearchParams()
+  if (round) params.set('round', round)
+  if (filter) params.set('filter', filter)
+  const qs = params.toString()
+  redirect(qs ? `/dashboard?${qs}` : '/dashboard')
 }
 
 // ─── ADMIN: MATCHES ────────────────────────────────────────────────────────
@@ -134,39 +144,10 @@ export async function deleteMatchAction(formData: FormData) {
 
 // ─── ADMIN: RESULTS ────────────────────────────────────────────────────────
 
-function calcPoints(
-  prediction: { winner: string; scorer: string | null; scoreHome: number | null; scoreAway: number | null },
-  match: { scoreHome: number; scoreAway: number; scorers: string | null }
-): number {
-  let pts = 0
-  const actual = match.scoreHome > match.scoreAway ? 'home' : match.scoreHome < match.scoreAway ? 'away' : 'draw'
-  const winnerCorrect = prediction.winner === actual
-
-  // 1. Zwycięzca / remis: 1 pkt
-  if (winnerCorrect) {
-    pts += 1
-    // 2. Różnica bramek (po właściwej stronie): +1 pkt
-    if (prediction.scoreHome !== null && prediction.scoreAway !== null) {
-      const predGD = prediction.scoreHome - prediction.scoreAway
-      const actualGD = match.scoreHome - match.scoreAway
-      if (predGD === actualGD) pts += 1
-    }
-  }
-
-  // 3. Dokładny wynik: +2 extra (łącznie 4 pkt gdy trafimy zwycięzcę + różnicę + dokładny)
-  if (
-    prediction.scoreHome !== null && prediction.scoreAway !== null &&
-    prediction.scoreHome === match.scoreHome && prediction.scoreAway === match.scoreAway
-  ) {
-    pts += 2
-  }
-
-  // 4. Strzelec pierwszej bramki: 2 pkt
-  if (prediction.scorer && match.scorers) {
-    if (prediction.scorer.toLowerCase().trim() === match.scorers.toLowerCase().trim()) pts += 2
-  }
-
-  return pts
+export async function syncResultsAction() {
+  await requireAdmin()
+  await syncResults({ force: true })
+  redirect('/admin?tab=mecze')
 }
 
 export async function enterResultsAction(formData: FormData) {
@@ -176,12 +157,21 @@ export async function enterResultsAction(formData: FormData) {
   const scoreHome = parseInt(formData.get('scoreHome') as string)
   const scoreAway = parseInt(formData.get('scoreAway') as string)
   const scorers = (formData.get('scorers') as string)?.trim() || null
+  const advancedRaw = (formData.get('advanced') as string)?.trim()
 
-  await prisma.match.update({ where: { id: matchId }, data: { scoreHome, scoreAway, scorers, status: 'finished' } })
+  const existing = await prisma.match.findUnique({ where: { id: matchId } })
+  const isKnockout = existing ? !GROUP_PHASES.includes(existing.phase) : false
+  // Kto awansował (tylko fazy pucharowe): wynik rozstrzygnięty → zwycięzca; remis → wybór admina
+  const advanced = !isKnockout ? null
+    : scoreHome > scoreAway ? 'home'
+    : scoreHome < scoreAway ? 'away'
+    : (advancedRaw === 'home' || advancedRaw === 'away' ? advancedRaw : null)
+
+  await prisma.match.update({ where: { id: matchId }, data: { scoreHome, scoreAway, scorers, advanced, status: 'finished' } })
 
   const predictions = await prisma.prediction.findMany({ where: { matchId } })
   for (const pred of predictions) {
-    const pts = calcPoints(pred, { scoreHome, scoreAway, scorers })
+    const pts = calcPoints(pred, { scoreHome, scoreAway, scorers, advanced })
     await prisma.prediction.update({ where: { id: pred.id }, data: { points: pts } })
   }
 

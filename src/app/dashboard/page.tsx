@@ -377,6 +377,8 @@ export default async function DashboardPage({
                                 awayPlayers={players.filter((p) => p.team === match.teamAway).map((p) => p.name)}
                                 isOpen={new Date(match.kickoff) > now}
                                 round={activeRound?.key}
+                                filterUnbet={filterUnbet}
+                                isKnockout={!GROUP_PHASES.includes(match.phase)}
                                 otherPredictions={othersMap.get(match.id) ?? []} />
                             ))}
                           </div>
@@ -394,6 +396,8 @@ export default async function DashboardPage({
                         awayPlayers={players.filter((p) => p.team === match.teamAway).map((p) => p.name)}
                         isOpen={new Date(match.kickoff) > now}
                         round={activeRound?.key}
+                        filterUnbet={filterUnbet}
+                        isKnockout={!GROUP_PHASES.includes(match.phase)}
                         otherPredictions={othersMap.get(match.id) ?? []} />
                     ))
                   })()

@@ -39,6 +39,7 @@ export type MatchData = {
 export type PredictionData = {
   winner: string; scorer: string | null
   scoreHome: number | null; scoreAway: number | null
+  advance?: string | null
   points?: number
 } | null
 
@@ -47,7 +48,7 @@ const inpSt = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(25
 const inpCls = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
 export default function MatchCard({
-  match, prediction, homePlayers, awayPlayers, isOpen, round, otherPredictions = [],
+  match, prediction, homePlayers, awayPlayers, isOpen, round, filterUnbet, isKnockout, otherPredictions = [],
 }: {
   match: MatchData
   prediction: PredictionData
@@ -55,6 +56,8 @@ export default function MatchCard({
   awayPlayers: string[]
   isOpen: boolean
   round?: string
+  filterUnbet?: boolean
+  isKnockout?: boolean
   otherPredictions?: OtherPrediction[]
 }) {
   const matchPlayers = [...homePlayers, ...awayPlayers]
@@ -66,6 +69,13 @@ export default function MatchCard({
   const [sh, setSh] = useState(prediction?.scoreHome ?? 0)
   const [sa, setSa] = useState(prediction?.scoreAway ?? 0)
   const derivedWinner = sh > sa ? match.teamHome : sh < sa ? match.teamAway : 'Remis'
+
+  // Awans (faza pucharowa): przy rozstrzygnięciu = zwycięzca (zablokowane), przy remisie = ręczny wybór
+  const [drawAdvance, setDrawAdvance] = useState<'home' | 'away' | ''>(
+    prediction?.advance === 'home' || prediction?.advance === 'away' ? prediction.advance : ''
+  )
+  const advanceSide = sh > sa ? 'home' : sh < sa ? 'away' : drawAdvance
+  const advanceTeam = advanceSide === 'home' ? match.teamHome : advanceSide === 'away' ? match.teamAway : null
 
   function pickRandom(pool: string[]) {
     if (!pool.length) return
@@ -148,6 +158,14 @@ export default function MatchCard({
                   <span className="font-semibold" style={{ color: '#f0eef5' }}>{prediction.scorer}</span>
                 </div>
               )}
+              {isKnockout && (prediction.advance === 'home' || prediction.advance === 'away') && (
+                <div className="flex justify-between">
+                  <span style={{ color: 'rgba(255,255,255,0.45)' }}>Awans:</span>
+                  <span className="font-semibold" style={{ color: '#f0eef5' }}>
+                    {prediction.advance === 'home' ? match.teamHome : match.teamAway}
+                  </span>
+                </div>
+              )}
               {match.status === 'finished' && prediction.points !== undefined && (
                 <div className="flex justify-between pt-1.5 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                   <span style={{ color: 'rgba(255,255,255,0.45)' }}>Punkty:</span>
@@ -168,6 +186,7 @@ export default function MatchCard({
             <input type="hidden" name="matchId" value={match.id} />
             <input type="hidden" name="scorer" value={effectiveScorer} />
             {round && <input type="hidden" name="round" value={round} />}
+            {filterUnbet && <input type="hidden" name="filter" value="unbet" />}
 
             {/* Score + derived winner */}
             <div>
@@ -245,6 +264,46 @@ export default function MatchCard({
                 </p>
               )}
             </div>
+
+            {/* Awans (tylko faza pucharowa) */}
+            {isKnockout && (
+              <div>
+                <p className="text-xs font-black mb-1.5 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Kto awansuje <span className="font-black" style={{ color: ACCENT }}>+1 pkt</span>
+                </p>
+                <input type="hidden" name="advance" value={advanceSide} />
+                {sh !== sa ? (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    style={{ background: 'rgba(201,162,39,0.10)', border: '1px solid rgba(201,162,39,0.20)' }}>
+                    <span style={{ color: ACCENT }}>🔒</span>
+                    <span className="font-black text-sm" style={{ color: '#f0eef5' }}>{flag(advanceTeam!)} {advanceTeam}</span>
+                    <span className="text-xs ml-auto" style={{ color: 'rgba(255,255,255,0.4)' }}>z wyniku</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      {(['home', 'away'] as const).map((side) => {
+                        const team = side === 'home' ? match.teamHome : match.teamAway
+                        return (
+                          <button key={side} type="button" onClick={() => setDrawAdvance(side)}
+                            className="flex-1 px-3 py-2 rounded-lg text-sm font-bold border transition-all"
+                            style={drawAdvance === side
+                              ? { background: 'rgba(201,162,39,0.20)', color: ACCENT, borderColor: 'rgba(201,162,39,0.40)' }
+                              : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
+                            {flag(team)} {team}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {!drawAdvance && (
+                      <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Remis — wskaż, kto awansuje (np. po karnych)
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             <button type="submit"
               className="w-full py-2.5 font-black rounded-xl transition-all text-sm shadow-md active:scale-95"
