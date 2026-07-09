@@ -5,6 +5,7 @@
 
 import { prisma } from './db'
 import { calcPoints, GROUP_PHASES } from './scoring'
+import { propagateBracket } from './bracket'
 
 // Kod TLA z API → polska nazwa drużyny w naszej bazie
 const TLA_TO_PL: Record<string, string> = {
@@ -101,6 +102,8 @@ export async function syncResults(opts: { force?: boolean } = {}): Promise<SyncR
       const pts = calcPoints(p, { scoreHome, scoreAway, scorers: db.scorers, advanced })
       await prisma.prediction.update({ where: { id: p.id }, data: { points: pts } })
     }
+
+    await propagateBracket(prisma, db.id)
 
     updated++
     const advTeam = advanced === 'home' ? db.teamHome : advanced === 'away' ? db.teamAway : null

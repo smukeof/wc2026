@@ -19,6 +19,7 @@ model User {
   predictions  Prediction[]
   specialBets  SpecialBet[]
   messages     Message[]
+  wheelSpin    WheelSpin?
   createdAt    DateTime      @default(now())
 }
 
@@ -34,8 +35,20 @@ model Match {
   scoreAway   Int?
   scorers     String?
   advanced    String?
+  nextMatchId       Int?
+  nextMatchSlot     String?
+  loserMatchId      Int?
+  loserMatchSlot    String?
   predictions Prediction[]
   createdAt   DateTime     @default(now())
+}
+
+model WheelSpin {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  points    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Prediction {

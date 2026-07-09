@@ -41,13 +41,13 @@ export default async function RankingPage({ searchParams }: { searchParams: { ro
 
   const users = await prisma.user.findMany({
     where: { isAdmin: false },
-    include: { predictions: { include: { match: true } }, specialBets: true },
+    include: { predictions: { include: { match: true } }, specialBets: true, wheelSpin: true },
   })
 
   const ranked = users.map((u) => {
     let pts = 0, typed = 0
     if (activeKey === 'all') {
-      pts = u.predictions.reduce((s, p) => s + p.points, 0) + u.specialBets.reduce((s, b) => s + b.points, 0)
+      pts = u.predictions.reduce((s, p) => s + p.points, 0) + u.specialBets.reduce((s, b) => s + b.points, 0) + (u.wheelSpin?.points ?? 0)
       typed = u.predictions.length
     } else if (activeKey === 'special') {
       pts = u.specialBets.reduce((s, b) => s + b.points, 0)

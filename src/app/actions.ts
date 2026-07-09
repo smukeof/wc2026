@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
 import { getSessionUserId } from '@/lib/session'
 import { calcPoints, GROUP_PHASES } from '@/lib/scoring'
 import { syncResults } from '@/lib/syncResults'
+import { propagateBracket } from '@/lib/bracket'
 
 // ─── AUTH ──────────────────────────────────────────────────────────────────
 
@@ -175,7 +176,25 @@ export async function enterResultsAction(formData: FormData) {
     await prisma.prediction.update({ where: { id: pred.id }, data: { points: pts } })
   }
 
+  await propagateBracket(prisma, matchId)
+
   redirect('/admin?tab=mecze')
+}
+
+// ─── WHEEL OF FORTUNE ──────────────────────────────────────────────────────
+
+export type WheelSpinResult = { ok: boolean; alreadySpun?: boolean; points?: number; error?: string }
+
+export async function spinWheelAction(): Promise<WheelSpinResult> {
+  const userId = getSessionUserId()
+  if (!userId) return { ok: false, error: 'not-signed-in' }
+  const existing = await prisma.wheelSpin.findUnique({ where: { userId } })
+  if (existing) return { ok: false, alreadySpun: true, points: existing.points }
+  const points = Math.floor(Math.random() * 7) // 0..6
+  await prisma.wheelSpin.create({ data: { userId, points } })
+  revalidatePath('/dashboard')
+  revalidatePath('/ranking')
+  return { ok: true, points }
 }
 
 // ─── ADMIN: USERS ──────────────────────────────────────────────────────────
@@ -195,6 +214,7 @@ export async function deleteUserAction(formData: FormData) {
   const targetId = parseInt(formData.get('targetId') as string)
   await prisma.prediction.deleteMany({ where: { userId: targetId } })
   await prisma.specialBet.deleteMany({ where: { userId: targetId } })
+  await prisma.wheelSpin.deleteMany({ where: { userId: targetId } })
   await prisma.user.delete({ where: { id: targetId } })
   redirect('/admin?tab=kody')
 }
@@ -211,6 +231,7 @@ export async function rejectUserAction(formData: FormData) {
   const targetId = parseInt(formData.get('targetId') as string)
   await prisma.prediction.deleteMany({ where: { userId: targetId } })
   await prisma.specialBet.deleteMany({ where: { userId: targetId } })
+  await prisma.wheelSpin.deleteMany({ where: { userId: targetId } })
   await prisma.user.delete({ where: { id: targetId } })
   redirect('/admin?tab=konta')
 }
