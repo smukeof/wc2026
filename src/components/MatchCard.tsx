@@ -28,6 +28,7 @@ function flag(team: string) {
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('pl-PL', {
     weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Warsaw',
   }).format(new Date(d))
 }
 

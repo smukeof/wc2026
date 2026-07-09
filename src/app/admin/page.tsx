@@ -22,7 +22,7 @@ const SPECIAL_BETS = [
 ]
 
 function fmt(d: Date) {
-  return new Date(d).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return new Date(d).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Warsaw' })
 }
 
 function toDatetimeLocal(d: Date) {

@@ -33,6 +33,7 @@ function flag(team: string) {
 function fmt(d: Date) {
   return new Intl.DateTimeFormat('pl-PL', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Warsaw',
   }).format(new Date(d))
 }
 
