@@ -4,7 +4,8 @@ import { prisma } from '@/lib/db'
 import NavBar from '@/components/NavBar'
 import MatchCard from '@/components/MatchCard'
 import RoundSelect from '@/components/RoundSelect'
-import WheelSpin from '@/components/WheelSpin'
+
+const WHEEL_PHASE = '1/8 finału'
 
 const ROUNDS = [
   { key: 'K1',  label: 'Kolejka 1',        phase: 'Kolejka 1' },
@@ -103,7 +104,7 @@ export default async function DashboardPage({
   const now = new Date()
   const view = searchParams.view === 'tabela' ? 'tabela' : 'typy'
 
-  const [allPhases, userPredictions, players, allGroupMatches, wheelSpin] = await Promise.all([
+  const [allPhases, userPredictions, players, allGroupMatches, wheelSpins] = await Promise.all([
     prisma.match.groupBy({ by: ['phase'] }),
     prisma.prediction.findMany({ where: { userId: user.id }, include: { match: true } }),
     prisma.player.findMany({ orderBy: [{ team: 'asc' }, { name: 'asc' }] }),
@@ -111,8 +112,9 @@ export default async function DashboardPage({
       where: { phase: { in: GROUP_PHASES } },
       orderBy: { kickoff: 'asc' },
     }),
-    prisma.wheelSpin.findUnique({ where: { userId: user.id } }),
+    prisma.wheelSpin.findMany({ where: { userId: user.id } }),
   ])
+  const wheelSpinByMatch = new Map(wheelSpins.map((w) => [w.matchId, w.points]))
 
   const existingPhases = new Set(allPhases.map((p) => p.phase))
   const availableRounds = ROUNDS.filter((r) => existingPhases.has(r.phase))
@@ -158,7 +160,7 @@ export default async function DashboardPage({
 
   const predMap = new Map(userPredictions.map((p) => [p.matchId, p]))
   const predictionPoints = userPredictions.reduce((sum, p) => sum + p.points, 0)
-  const wheelBonus = wheelSpin?.points ?? 0
+  const wheelBonus = wheelSpins.reduce((s, w) => s + w.points, 0)
   const totalPoints = predictionPoints + wheelBonus
   const filterUnbet = searchParams.filter === 'unbet'
 
@@ -189,11 +191,6 @@ export default async function DashboardPage({
             </p>
           </div>
           <div className="text-3xl opacity-40">⚽</div>
-        </div>
-
-        {/* Koło fortuny (bonus jednorazowy) */}
-        <div className="mb-5">
-          <WheelSpin initialPoints={wheelSpin?.points ?? null} />
         </div>
 
         {/* Sub-tabs */}
@@ -388,6 +385,8 @@ export default async function DashboardPage({
                                 round={activeRound?.key}
                                 filterUnbet={filterUnbet}
                                 isKnockout={!GROUP_PHASES.includes(match.phase)}
+                                isWheelMatch={match.phase === WHEEL_PHASE}
+                                wheelSpinPoints={wheelSpinByMatch.get(match.id) ?? null}
                                 otherPredictions={othersMap.get(match.id) ?? []} />
                             ))}
                           </div>
@@ -407,6 +406,8 @@ export default async function DashboardPage({
                         round={activeRound?.key}
                         filterUnbet={filterUnbet}
                         isKnockout={!GROUP_PHASES.includes(match.phase)}
+                        isWheelMatch={match.phase === WHEEL_PHASE}
+                        wheelSpinPoints={wheelSpinByMatch.get(match.id) ?? null}
                         otherPredictions={othersMap.get(match.id) ?? []} />
                     ))
                   })()

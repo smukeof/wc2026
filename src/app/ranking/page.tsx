@@ -31,9 +31,11 @@ export default async function RankingPage({ searchParams }: { searchParams: { ro
 
   const finishedPhases = await prisma.match.groupBy({ by: ['phase'], where: { status: 'finished' } })
   const finishedSet = new Set(finishedPhases.map((p) => p.phase))
+  const anyWheelSpin = (await prisma.wheelSpin.count()) > 0
 
   const availableCategories = CATEGORIES.filter((c) => {
     if (c.key === 'all' || c.key === 'special') return true
+    if (c.key === 'R8') return anyWheelSpin
     return c.phase && finishedSet.has(c.phase)
   })
 
@@ -41,17 +43,20 @@ export default async function RankingPage({ searchParams }: { searchParams: { ro
 
   const users = await prisma.user.findMany({
     where: { isAdmin: false },
-    include: { predictions: { include: { match: true } }, specialBets: true, wheelSpin: true },
+    include: { predictions: { include: { match: true } }, specialBets: true, wheelSpins: true },
   })
 
   const ranked = users.map((u) => {
     let pts = 0, typed = 0
     if (activeKey === 'all') {
-      pts = u.predictions.reduce((s, p) => s + p.points, 0) + u.specialBets.reduce((s, b) => s + b.points, 0) + (u.wheelSpin?.points ?? 0)
+      pts = u.predictions.reduce((s, p) => s + p.points, 0) + u.specialBets.reduce((s, b) => s + b.points, 0) + u.wheelSpins.reduce((s, w) => s + w.points, 0)
       typed = u.predictions.length
     } else if (activeKey === 'special') {
       pts = u.specialBets.reduce((s, b) => s + b.points, 0)
       typed = u.specialBets.filter((b) => b.value !== '').length
+    } else if (activeKey === 'R8') {
+      pts = u.wheelSpins.reduce((s, w) => s + w.points, 0)
+      typed = u.wheelSpins.length
     } else {
       const preds = u.predictions.filter((p) => p.match.phase === activeCategory.phase)
       pts = preds.reduce((s, p) => s + p.points, 0)

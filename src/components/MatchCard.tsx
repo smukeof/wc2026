@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { savePredictionAction } from '@/app/actions'
+import WheelSpin from '@/components/WheelSpin'
 import type { OtherPrediction } from '@/app/dashboard/page'
 
 const SPECIAL_SCORERS = ['Brak gola', 'Gol samobójczy']
@@ -48,7 +49,7 @@ const inpSt = { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(25
 const inpCls = 'w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
 export default function MatchCard({
-  match, prediction, homePlayers, awayPlayers, isOpen, round, filterUnbet, isKnockout, otherPredictions = [],
+  match, prediction, homePlayers, awayPlayers, isOpen, round, filterUnbet, isKnockout, isWheelMatch, wheelSpinPoints, otherPredictions = [],
 }: {
   match: MatchData
   prediction: PredictionData
@@ -58,6 +59,8 @@ export default function MatchCard({
   round?: string
   filterUnbet?: boolean
   isKnockout?: boolean
+  isWheelMatch?: boolean
+  wheelSpinPoints?: number | null
   otherPredictions?: OtherPrediction[]
 }) {
   const matchPlayers = [...homePlayers, ...awayPlayers]
@@ -131,7 +134,9 @@ export default function MatchCard({
       </div>
 
       {/* Body */}
-      {isTBD ? (
+      {isWheelMatch ? (
+        <WheelSpin matchId={match.id} initialPoints={wheelSpinPoints ?? null} />
+      ) : isTBD ? (
         <div className="px-4 py-3 text-center text-sm italic" style={{ color: 'rgba(255,255,255,0.3)' }}>
           Drużyny poznamy po fazie grupowej
         </div>
