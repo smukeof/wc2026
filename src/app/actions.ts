@@ -181,9 +181,7 @@ export async function enterResultsAction(formData: FormData) {
   redirect('/admin?tab=mecze')
 }
 
-// ─── WHEEL OF FORTUNE (per mecz w fazie 1/8 finału) ────────────────────────
-
-const WHEEL_PHASE = '1/8 finału'
+// ─── WHEEL OF FORTUNE (per mecz z flagą hasWheel=true) ─────────────────────
 
 export type WheelSpinResult = { ok: boolean; alreadySpun?: boolean; points?: number; error?: string }
 
@@ -192,7 +190,7 @@ export async function spinWheelAction(matchId: number): Promise<WheelSpinResult>
   if (!userId) return { ok: false, error: 'not-signed-in' }
   if (!Number.isFinite(matchId)) return { ok: false, error: 'bad-match-id' }
   const match = await prisma.match.findUnique({ where: { id: matchId } })
-  if (!match || match.phase !== WHEEL_PHASE) return { ok: false, error: 'wrong-phase' }
+  if (!match || !match.hasWheel) return { ok: false, error: 'no-wheel' }
   const existing = await prisma.wheelSpin.findUnique({ where: { userId_matchId: { userId, matchId } } })
   if (existing) return { ok: false, alreadySpun: true, points: existing.points }
   const points = Math.floor(Math.random() * 7) // 0..6

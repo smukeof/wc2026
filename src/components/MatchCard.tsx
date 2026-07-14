@@ -135,9 +135,10 @@ export default function MatchCard({
       </div>
 
       {/* Body */}
-      {isWheelMatch ? (
+      {isWheelMatch && (
         <WheelSpin matchId={match.id} initialPoints={wheelSpinPoints ?? null} />
-      ) : isTBD ? (
+      )}
+      {isWheelMatch && isTBD ? null : isTBD ? (
         <div className="px-4 py-3 text-center text-sm italic" style={{ color: 'rgba(255,255,255,0.3)' }}>
           Drużyny poznamy po fazie grupowej
         </div>

@@ -5,8 +5,6 @@ import NavBar from '@/components/NavBar'
 import MatchCard from '@/components/MatchCard'
 import RoundSelect from '@/components/RoundSelect'
 
-const WHEEL_PHASE = '1/8 finału'
-
 const ROUNDS = [
   { key: 'K1',  label: 'Kolejka 1',        phase: 'Kolejka 1' },
   { key: 'K2',  label: 'Kolejka 2',        phase: 'Kolejka 2' },
@@ -385,7 +383,7 @@ export default async function DashboardPage({
                                 round={activeRound?.key}
                                 filterUnbet={filterUnbet}
                                 isKnockout={!GROUP_PHASES.includes(match.phase)}
-                                isWheelMatch={match.phase === WHEEL_PHASE}
+                                isWheelMatch={match.hasWheel}
                                 wheelSpinPoints={wheelSpinByMatch.get(match.id) ?? null}
                                 otherPredictions={othersMap.get(match.id) ?? []} />
                             ))}
@@ -406,7 +404,7 @@ export default async function DashboardPage({
                         round={activeRound?.key}
                         filterUnbet={filterUnbet}
                         isKnockout={!GROUP_PHASES.includes(match.phase)}
-                        isWheelMatch={match.phase === WHEEL_PHASE}
+                        isWheelMatch={match.hasWheel}
                         wheelSpinPoints={wheelSpinByMatch.get(match.id) ?? null}
                         otherPredictions={othersMap.get(match.id) ?? []} />
                     ))

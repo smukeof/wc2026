@@ -35,6 +35,7 @@ model Match {
   scoreAway   Int?
   scorers     String?
   advanced    String?
+  hasWheel          Boolean  @default(false)
   nextMatchId       Int?
   nextMatchSlot     String?
   loserMatchId      Int?
